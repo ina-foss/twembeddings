@@ -16,7 +16,7 @@ Since some tweets may have probably been erased since we collected the dataset, 
 
 ## Available embeddings
 - **tfidf-dataset**: 
-![alt text](https://latex.codecogs.com/gif.latex?idf(t)=log(\frac{n&plus;1}{df(t)&plus;1}))&plus;1)
+![alt text](https://latex.codecogs.com/gif.latex?\mathcal{W}(A,f)&space;=&space;(T,\bar{f}))
 - **w2v-news**
 - **w2v-twitter**
 - **BERT**
