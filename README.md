@@ -11,7 +11,7 @@ Since some tweets may have probably been erased since we collected the dataset, 
 * [Download Event2012 dataset](#download-event2012-dataset)
     * [Download tweets' IDs](#download-tweets-ids)
     * [Download tweets' content](#download-tweets-content)
-* [Run event detection](#getting-started)
+* [Run event detection](#run-event-detection)
 * [Available embeddings](#available-embeddings)
     * [tf-idf](#tfidf-dataset)
     * [Word2Vec](#w2v-news)
@@ -65,7 +65,7 @@ Run the script:
 The script may take some time to run entirely, since it respects the API's 
 [rate limit](https://developer.twitter.com/en/docs/basics/rate-limits).
 
-## Getting started
+## Run event detection
 
 ## Available embeddings
 ##### tfidf-dataset: 
