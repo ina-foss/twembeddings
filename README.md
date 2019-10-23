@@ -7,14 +7,22 @@ Since some tweets may have probably been erased since we collected the dataset, 
  
 
 ## Summary:
-
+* [Available embeddings](#available-embeddings)
 * [Installation](#installation)
 * [Download Event2012 dataset](#download-event2012-dataset)
-* [Available embeddings](#available-embeddings)
-    * [Requirements](#requirements)
-    * [Submodules](#submodules)
-* [Citation](#citation)
-* [Acknowledgment](#acknowledgment)
+    * [Download tweets' IDs](#download-tweets-ids)
+    * [Download tweets' content](#download-tweets-content)
+* [Run event detection](#run-event-detection)
+
+## Available embeddings
+- **tfidf-dataset**: 
+https://latex.codecogs.com/gif.latex?\mathcal{W}(A,f)&space;=&space;(T,\bar{f})
+- **w2v-news**
+- **w2v-twitter**
+- **BERT**
+- **ELMo**
+- **Universal Sentence Encoder**
+- **Sentence-BERT**
 
 ## Installation
 We recommand using Anaconda 3 to create a python 3.6 environment 
@@ -32,13 +40,13 @@ Then clone the repo and install the complementary requirements:
     
 ## Download Event2012 dataset
 
-### Download IDs
+### Download tweets' IDs
 In compliance with Twitter terms of use, the authors of the dataset do not share the tweets content,
 but only the tweets IDs. Accept the 
 [dataset agreement](https://docs.google.com/forms/d/e/1FAIpQLSfRQX4R2O_Pv26wuepydKS4xxi6QbLrhaCgJaAXPcKx7dDljQ/viewform)
 and download the dataset. Untar the folder, the labeled tweets are in the `relevant_tweets.tsv` file. 
 
-### Download content
+### Download tweets' content
 We provide a script to download the content of the tweets from the Twitter API. In order to run the script,
 you need to [create a Twitter developper account and a Twitter App](https://developer.twitter.com/en/docs/basics/apps/overview).
 Then get the app's [access tokens](https://developer.twitter.com/en/docs/basics/authentication/guides/access-tokens).
@@ -59,3 +67,5 @@ Run the script:
 
 The script may take some time to run entirely, since it respects the API's 
 [rate limit](https://developer.twitter.com/en/docs/basics/rate-limits).
+
+## Run event detection
