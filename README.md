@@ -16,7 +16,7 @@ Since some tweets may have probably been erased since we collected the dataset, 
 
 ## Available embeddings
 - **tfidf-dataset**: 
-![idf(t) = 1+log((n+1)/df(t)+1)](https://latex.codecogs.com/gif.latex?idf(t)=1&plus;log(\frac{n&plus;1}{df(t)&plus;1)}))
+![idf(t) = 1+log((n+1)/df(t)+1)](https://latex.codecogs.com/gif.latex?idf(t)=1&plus;log(\frac{n&plus;1}{df(t)&plus;1)})
 - **w2v-news**
 - **w2v-twitter**
 - **BERT**
