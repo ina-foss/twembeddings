@@ -74,13 +74,13 @@ the idf expression rather than the tfidf
 
 ![idf(t) = 1+log((n+1)/df(t)+1)](https://latex.codecogs.com/gif.latex?idf(t)=1&plus;log\frac{n&plus;1}{df(t)&plus;1})
 ##### w2v-news
- [Google model pretrained on google news](code.google.com/archive/p/word2vec/) with mean-pooling of word representations as sentence embedding.
+ [Google model pretrained on google news](https://code.google.com/archive/p/word2vec/) with mean-pooling of word representations as sentence embedding.
 <!---
 ##### w2v-twitter
 [Model pretrained on tweets](github.com/loretoparisi/word2vec-twitter) with mean-pooling of word representations as sentence embedding.
 --->
 ##### elmo
-Pretrained model on [TensorFlow Hub](tfhub.dev/google/elmo/2) with mean-pooling of word representations as sentence embedding. 
+Pretrained model on [TensorFlow Hub](https://tfhub.dev/google/elmo/2) with mean-pooling of word representations as sentence embedding. 
 ##### bert
 In case you want to use BERT embeddings, you need to install `bert-as-service`:
 
@@ -98,7 +98,7 @@ We use the default parameters of `bert-as-service` : the pooling layer is the se
 and mean-pooling is used for sentence embedding.
 
 ##### use
-Pretrained model on [TensorFlow Hub](tfhub.dev/google/universal-sentence-encoder-large/3)
+Pretrained model on [TensorFlow Hub](https://tfhub.dev/google/universal-sentence-encoder-large/3)
 ##### sbert
 Pretrained model from [UKPLab](https://github.com/UKPLab/sentence-transformers#pretrained-models). 
 We use bert-large-nli-stsb-mean-tokens model.
