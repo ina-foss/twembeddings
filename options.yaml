@@ -1,14 +1,16 @@
 standard :
-  hashtag_split: True
-  svd : False
-  tfidf_weights: False
-  save : True
-  save_results: False
+# these options are applied to all models
+  hashtag_split: True # split hashtags on capital letters,
+  svd : False # turn sparse tf-idf features into dense ones using Singular Value Decomposition
+  tfidf_weights: False # use tf-idf weights when averaging Word2Vec vectors
+  save : True # save features in the form of a .npy or .npz (for sparse vectors) file
+  save_results: False # save results in a .csv file
   lang : "en"
   dataset : "data/event2012_test.tsv"
   annotation : "annotated"
   text+ : False
 
+# You may configure specific options for each model using the following fields
 tfidf_dataset :
   save : False
 

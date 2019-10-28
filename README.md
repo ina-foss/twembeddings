@@ -13,12 +13,12 @@ Since some tweets may have probably been erased since we collected the dataset, 
     * [Download tweets' content](#download-tweets-content)
 * [Run event detection](#run-event-detection)
 * [Available embeddings](#available-embeddings)
-    * [tf-idf](#tfidf-dataset)
-    * [Word2Vec](#w2v-news)
-    * [ELMo](#elmo)
-    * [BERT](#bert)
-    * [Universal Sentence Encoder](#use)
-    * [Sentence-BERT](#sbert)
+    * [tf-idf](#tf-idf-tfidf_dataset)
+    * [Word2Vec](#word2vec-w2v_gnews_en)
+    * [ELMo](#elmo-elmo)
+    * [BERT](#bert-bert)
+    * [Universal Sentence Encoder](#universal-sentence-encoder-use)
+    * [Sentence-BERT](#sentence-bert-sbert_nli_sts)
 
 
 ## Installation
@@ -66,22 +66,30 @@ The script may take some time to run entirely, since it respects the API's
 [rate limit](https://developer.twitter.com/en/docs/basics/rate-limits).
 
 ## Run event detection
+### Classification
+Run classification with the names of the models as parameter.
+
+
+    python classification.py --model tfidf_dataset w2v_gnews_en sbert_nli_sts
+
+Additionnal options for each model can be modified in 
+[options.yaml](https://github.com/ina-foss/twembeddings/blob/master/options.yaml)
 
 ## Available embeddings
-##### tfidf-dataset: 
+##### Tf-idf (`tfidf_dataset`): 
 Since the same word is rarely used several times in the same tweet, we used
 the idf expression rather than the tfidf
 
 ![idf(t) = 1+log((n+1)/df(t)+1)](https://latex.codecogs.com/gif.latex?idf(t)=1&plus;log\frac{n&plus;1}{df(t)&plus;1})
-##### w2v-news
+##### Word2Vec (`w2v_gnews_en`)
  [Google model pretrained on google news](https://code.google.com/archive/p/word2vec/) with mean-pooling of word representations as sentence embedding.
 <!---
 ##### w2v-twitter
 [Model pretrained on tweets](github.com/loretoparisi/word2vec-twitter) with mean-pooling of word representations as sentence embedding.
 --->
-##### elmo
+##### ELMo (`elmo`)
 Pretrained model on [TensorFlow Hub](https://tfhub.dev/google/elmo/2) with mean-pooling of word representations as sentence embedding. 
-##### bert
+##### BERT (`bert`)
 In case you want to use BERT embeddings, you need to install `bert-as-service`:
 
     pip install bert-serving-server
@@ -97,8 +105,8 @@ Our program will act as a client to this service.
 We use the default parameters of `bert-as-service` : the pooling layer is the second-to-last layer,
 and mean-pooling is used for sentence embedding.
 
-##### use
+##### Universal Sentence Encoder (`use`)
 Pretrained model on [TensorFlow Hub](https://tfhub.dev/google/universal-sentence-encoder-large/3)
-##### sbert
+##### Sentence-BERT (`sbert_nli_sts`)
 Pretrained model from [UKPLab](https://github.com/UKPLab/sentence-transformers#pretrained-models). 
 We use bert-large-nli-stsb-mean-tokens model.
