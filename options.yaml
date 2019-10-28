@@ -1,0 +1,16 @@
+standard :
+  hashtag_split: True
+  svd : False
+  tfidf_weights: False
+  save : True
+  save_results: False
+  lang : "en"
+  dataset : "data/event2012_test.tsv"
+  annotation : "annotated"
+  text+ : False
+
+tfidf_dataset :
+  save : False
+
+w2v_gnews_en :
+  tfidf_weights : True
