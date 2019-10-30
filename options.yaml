@@ -6,7 +6,7 @@ standard :
   save : True # save features in the form of a .npy or .npz (for sparse vectors) file
   save_results: False # save results in a .csv file
   lang : "en"
-  dataset : "data/event2012_test.tsv"
+  dataset : "data/event2012.tsv"
   annotation : "annotated"
   text+ : False
 

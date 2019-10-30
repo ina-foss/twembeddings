@@ -68,7 +68,7 @@ def main():
     complete_data = complete_data[complete_data.text.notna()]
     complete_data["label"] = complete_data["label"]
     complete_data["text"] = complete_data["text"].str.replace("\t", " ").str.replace("\n", " ").str.replace("\r", " ")
-    complete_data.to_csv("data/event2012_test.tsv", sep="\t", index=False, quoting=csv.QUOTE_ALL)
+    complete_data.to_csv("data/event2012.tsv", sep="\t", index=False, quoting=csv.QUOTE_ALL)
 
 
 if __name__ == "__main__":
