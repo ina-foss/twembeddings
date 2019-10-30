@@ -12,6 +12,8 @@ Since some tweets may have probably been erased since we collected the dataset, 
     * [Download tweets' IDs](#download-tweets-ids)
     * [Download tweets' content](#download-tweets-content)
 * [Run event detection](#run-event-detection)
+    * [Classification](#classification)
+    * [Clustering](#clustering)
 * [Available embeddings](#available-embeddings)
     * [tf-idf](#tf-idf-tfidf_dataset)
     * [Word2Vec](#word2vec-w2v_gnews_en)
@@ -67,13 +69,21 @@ The script may take some time to run entirely, since it respects the API's
 
 ## Run event detection
 ### Classification
-Run classification with the names of the models as parameter.
-
+Run classification with one or several embedding names as `model` parameter.
 
     python classification.py --model tfidf_dataset w2v_gnews_en sbert_nli_sts
 
 Additionnal options for each model can be modified in 
 [options.yaml](https://github.com/ina-foss/twembeddings/blob/master/options.yaml)
+### Clustering
+Run clustering with one or several embedding names as `model` parameter.
+
+    python clustering.py --model tfidf_dataset w2v_gnews_en sbert_nli_sts
+
+You can test several threshold parameters for the First Story Detection
+Algorithm by modifying the 
+[options.yaml](https://github.com/ina-foss/twembeddings/blob/master/options.yaml)
+file.
 
 ## Available embeddings
 ##### Tf-idf (`tfidf_dataset`): 

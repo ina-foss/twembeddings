@@ -117,11 +117,11 @@ class TfIdf:
                 setattr(self, attr, pickle.load(f))
         return self
 
-    def save(self, path):
+    def save(self, dataset):
+        dataset = dataset.split("/")[-1].replace(".tsv", "")
         for attr in ["df", "features_names", "n_samples"]:
-            with open(path + "_" + attr, "wb") as f:
+            with open("./models/" + dataset + "_" + attr, "wb") as f:
                 pickle.dump(getattr(self, attr), f)
-        logging.info("Saved data to {}".format(path))
 
     def get_new_features(self, data):
         features_set = set(self.features_names)
