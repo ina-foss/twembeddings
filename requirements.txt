@@ -11,3 +11,4 @@ tqdm==4.36.1
 unidecode
 twython
 pyyaml
+gensim==3.4.0
