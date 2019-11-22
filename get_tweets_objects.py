@@ -33,18 +33,19 @@ def rehydrate_tweets(twitter_obj, tweet_id_list, jsondump=False):
         except TwythonRateLimitError:
             reset_time = float(twitter_obj.get_lastfunction_header("x-rate-limit-reset"))
             delta = round(int(reset_time) - time.time(), 0)
-            logging.info("Twitter rate limit reached, sleeping {} seconds".format(delta + 1))
+            logging.warning("Twitter rate limit reached, sleeping {} seconds".format(delta + 1))
             time.sleep(delta + 1)
             continue
         if len(batch) == 0:
             break
         if jsondump:
-            with open("data/event_2018.json", "a+") as f:
+            with open("data/event_2018.json", "w") as f:
                 for tweet in batch:
                     json_str = json.dumps(tweet) + "\n"
                     f.write(json_str)
         tweets += batch
         id_count += 100
+        logging.info(" ... {} / {} tweets retrieved so far".format(id_count, len(tweet_id_list)))
 
     # Check to see if we didn't get all of the requested tweets back
     if len(tweet_id_list) != len(tweets):
