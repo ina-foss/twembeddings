@@ -9,7 +9,7 @@ import yaml
 import argparse
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s : %(message)s', level=logging.INFO)
-text_embeddings = ['tfidf_dataset', 'w2v_gnews_en', "elmo", "bert", "sbert_nli_sts", "use"]
+text_embeddings = ['tfidf_dataset', 'tfidf_all_tweets', 'w2v_gnews_en', "elmo", "bert", "sbert_nli_sts", "use"]
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('--model',
                     nargs='+',
