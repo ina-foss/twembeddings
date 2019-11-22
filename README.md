@@ -121,6 +121,24 @@ Algorithm by modifying the
 [options.yaml](https://github.com/ina-foss/twembeddings/blob/master/options.yaml)
 file.
 
+| model                     | t (en)| f1 (en)| t (fr)              | f1 (fr)   |
+|:--------------------------|:------|:-------|:--------------------|:-------|
+| bert                      | 0.04  | 39.22  | 0.04                | 44.79  |
+| bert-tweets               | -     | -      | 0.02                | 50.02  |
+| elmo                      | 0.08  | 22.48  | 0.2                 | 46.08  |
+| sbert-nli-sts             | 0.39  | 58.24  | -                   | -      |
+| sbert-tweets-sts-long     | -     | -      | 0.36                | 67.89  |
+| sbert-tweets-sts-short    | -     | -      | 0.38                | 65.71  |
+| tfidf-all-tweets          | 0.75  | 70.1   | 0.7                 | 78.05  |
+| tfidf-dataset             | 0.65  | 68.07  | 0.7                 | 74.39  |
+| use                       | 0.22  | 55.71  | 0.46                | 74.57  |
+| w2v-news                  | 0.3   | 53.99  | 0.25                | 66.34  |
+| w2v-news tfidf-weights    | 0.31  | 61.81  | 0.3                 | 75.55  |
+| w2v-twitter               | 0.16  | 43.2   | 0.15                | 57.53  |
+| w2v-twitter tfidf-weights | 0.2   | 53.45  | 0.25                | 71.73  |
+
+
+
 ## Available embeddings
 ##### Tf-idf (`tfidf_dataset`): 
 Since the same word is rarely used several times in the same tweet, we used
@@ -161,6 +179,7 @@ and mean-pooling is used for sentence embedding.
 ##### Universal Sentence Encoder (`use`)
 Pretrained model on [TensorFlow Hub](https://tfhub.dev/google/universal-sentence-encoder-large/3).
 The [multilingual model](https://tfhub.dev/google/universal-sentence-encoder-multilingual/1) was used for French.
+
 ##### Sentence-BERT (`sbert_nli_sts`)
 Pretrained model from [UKPLab](https://github.com/UKPLab/sentence-transformers#pretrained-models). 
 We use bert-large-nli-stsb-mean-tokens model.
