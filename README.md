@@ -99,8 +99,7 @@ Untar the folder, the labeled tweets are in the `relevant_tweets.tsv` file.
 The script may take some time to run entirely, since it respects the API's 
 [rate limit](https://developer.twitter.com/en/docs/basics/rate-limits).
 
-## Run event detection
-### Classification
+## Classification
 Run classification with one or several embedding names as `model` parameter.
 
     python classification.py --dataset data/event2012.tsv --lang en --model tfidf_dataset w2v_gnews_en sbert_nli_sts
@@ -111,7 +110,25 @@ or
 
 Additionnal options for each model can be modified in 
 [options.yaml](https://github.com/ina-foss/twembeddings/blob/master/options.yaml)
-### Clustering
+
+| Model                     |F1±ste (en) |F1±ste (fr) |
+|:--------------------------|:-----------|:-----------|
+| bert                      | 74.49±0.41 | 78.46±0.68 |
+| bert-tweets               | -          | 81.77±0.7  |
+| elmo                      | 59.81±0.41 | 73.59±0.64 |
+| sbert-nli-sts             | 80.55±0.33 | -          |
+| sbert-tweets-sts-long     | -          | 86.08±0.86 |
+| tfidf-all-tweets          | 83.5±0.78  | 87.79±0.58 |
+| tfidf-all-tweets svd      | 62.4±0.72  | 75.32±0.88 |
+| tfidf-dataset             | 83.46±0.72 | 87.66±0.69 |
+| tfidf-dataset svd         | 58.24±0.52 | 75.92±0.56 |
+| use                       | 80.26±0.38 | 87.45±0.6  |
+| w2v-news                  | 81.35±0.53 | 86.59±0.8  |
+| w2v-news tfidf-weights    | 82.39±0.64 | 87.51±0.71 |
+| w2v-twitter               | 76.68±0.53 | 87.01±0.56 |
+| w2v-twitter tfidf-weights | 81.2±0.48  | 87.73±0.56 |
+
+## Clustering
 Run clustering with one or several embedding names as `model` parameter.
 
     python clustering.py --dataset data/event2012.tsv --lang en --model tfidf_dataset w2v_gnews_en sbert_nli_sts
@@ -121,7 +138,7 @@ Algorithm by modifying the
 [options.yaml](https://github.com/ina-foss/twembeddings/blob/master/options.yaml)
 file.
 
-| model                     | t (en)| f1 (en)| t (fr)              | f1 (fr)   |
+| Model                     | t (en)| F1 (en)| t (fr)              | F1 (fr)|
 |:--------------------------|:------|:-------|:--------------------|:-------|
 | bert                      | 0.04  | 39.22  | 0.04                | 44.79  |
 | bert-tweets               | -     | -      | 0.02                | 50.02  |
