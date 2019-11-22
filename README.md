@@ -59,6 +59,7 @@ Run the script:
 
     python get_tweets_objects.py \
     --path /yourpath/relevant_tweets.tsv \
+    --dataset event2012.tsv
     --app_key mIsU1P0NNjUTf9DjuN6pdqyOF \
     --app_secret KAd5dpgRlu0X3yizTfXTD3lZOAkF7x0QAEhAMHpVCufGW4y0t0 \
     --oauth_token 4087833385208874171-k6UR7OGNFdfBcqPye8ps8uBSSqOYXm \
@@ -71,14 +72,14 @@ The script may take some time to run entirely, since it respects the API's
 ### Classification
 Run classification with one or several embedding names as `model` parameter.
 
-    python classification.py --model tfidf_dataset w2v_gnews_en sbert_nli_sts
+    python classification.py --dataset data/event2012.tsv --lang en --model tfidf_dataset w2v_gnews_en sbert_nli_sts
 
 Additionnal options for each model can be modified in 
 [options.yaml](https://github.com/ina-foss/twembeddings/blob/master/options.yaml)
 ### Clustering
 Run clustering with one or several embedding names as `model` parameter.
 
-    python clustering.py --model tfidf_dataset w2v_gnews_en sbert_nli_sts
+    python clustering.py --dataset data/event2012.tsv --lang en --model tfidf_dataset w2v_gnews_en sbert_nli_sts
 
 You can test several threshold parameters for the First Story Detection
 Algorithm by modifying the 

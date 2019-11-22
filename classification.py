@@ -18,6 +18,15 @@ parser.add_argument('--model',
                     One or several text embeddings
                     """
                     )
+parser.add_argument('--dataset',
+                    required=True,
+                    help="""
+                    Path to the dataset
+                    """
+                    )
+parser.add_argument('--lang',
+                    required=True,
+                    choices=["en", "fr"])
 
 
 def main(args):
@@ -30,8 +39,9 @@ def main(args):
         if model in options:
             # overwrite standard parameters if specified in options.yaml file
             for opt in options[model]:
-                params[opt] = options[model][opt]
-                logging.info("Param '{}' : {}".format(opt, options[model][opt]))
+                if opt != "threshold":
+                    params[opt] = options[model][opt]
+                    logging.info("Param '{}' : {}".format(opt, options[model][opt]))
         for seed in [42, 11, 1008, 2993, 559]:
             test_params(**params, seed=seed)
 

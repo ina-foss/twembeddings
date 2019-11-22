@@ -121,26 +121,19 @@ def load_matrix(**args):
 
 
 def load_dataset(dataset, annotation, text=False):
-    if dataset.startswith("event2018"):
-        data = pd.read_csv("data/event_2018.tsv",
-                           sep="\t",
-                           dtype={"event": str, "id": str}
-                           )
-        if annotation == "annotated":
-            data = data[data.label.notna()]
-        elif annotation == "examined":
-            data = data[data.event.notna()]
-        if dataset == "event2018_image":
-            data = data[data.image.notna()]
+    data = pd.read_csv(dataset,
+                       sep="\t",
+                       quoting=csv.QUOTE_ALL,
+                       dtype={"id": str, "label": int}
+                       )
+    if annotation == "annotated" and "label" in data.columns:
+        data = data[data.label.notna()]
+    elif annotation == "examined" and "label" in data.columns:
+        data = data[data.event.notna()]
+    if dataset == "data/event2018_image":
+        data = data[data.image.notna()]
 
-    else:
-        data = pd.read_csv(dataset,
-                           sep="\t",
-                           quoting=csv.QUOTE_ALL,
-                           # dtype={"id": str, "label": int}
-                           )
-
-    if text == "text+":
+    if text == "text+" and "text+quote+reply" in data.columns:
         data = data.rename(columns={"text": "text_not_formated", "text+quote+reply": "text"})
     data["date"] = data["created_at"].apply(find_date_created_at)
     return data.drop_duplicates("id").sort_values("id").reset_index()

@@ -10,6 +10,7 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s : %(message)s', level=lo
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 for argument in ['--path', '--app_key', '--app_secret', '--oauth_token', '--oauth_token_secret']:
     parser.add_argument(argument, required=True)
+parser.add_argument('--dataset', required=True, help="event2012, event2018")
 args = vars(parser.parse_args())
 
 
@@ -57,6 +58,7 @@ def rehydrate_tweets(twitter_obj, tweet_id_list, jsondump=False):
 
 def main():
     path = args.pop("path")
+    dataset = args.pop("dataset")
     twitter_obj = Twython(**args)
     labeled_data = pd.read_csv(path, sep="\t", header=None, names=["label", "id"],
                                dtype={"id": str}
@@ -68,7 +70,7 @@ def main():
     complete_data = complete_data[complete_data.text.notna()]
     complete_data["label"] = complete_data["label"]
     complete_data["text"] = complete_data["text"].str.replace("\t", " ").str.replace("\n", " ").str.replace("\r", " ")
-    complete_data.to_csv("data/event2012.tsv", sep="\t", index=False, quoting=csv.QUOTE_ALL)
+    complete_data.to_csv("data/{}.tsv".format(dataset), sep="\t", index=False, quoting=csv.QUOTE_ALL)
 
 
 if __name__ == "__main__":
