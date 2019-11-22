@@ -155,11 +155,14 @@ Additionnal options for each model can be modified in
 
 
 ## Available embeddings
-##### Tf-idf (`tfidf_dataset`): 
+##### Tf-idf (`tfidf_dataset` or `tfidf_all_tweets`): 
 Since the same word is rarely used several times in the same tweet, we used
 the idf expression rather than the tfidf
 
 ![idf(t) = 1+log((n+1)/df(t)+1)](https://latex.codecogs.com/gif.latex?idf(t)=1&plus;log\frac{n&plus;1}{df(t)&plus;1})
+
+With option `tfidf_dataset`, only the annotated tweets are used to count words.
+With option `tfidf_all_tweets`, all tweets in the corpora (millions of tweets) are used to count words.
 ##### Word2Vec (`w2v_gnews_en`)
  [Google model pretrained on google news](https://code.google.com/archive/p/word2vec/) with mean-pooling of word representations as sentence embedding.
 <!---
