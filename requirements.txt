@@ -10,3 +10,4 @@ tf-sentencepiece==0.1.83
 tqdm==4.36.1
 unidecode
 twython
+pyyaml
