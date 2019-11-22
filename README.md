@@ -59,7 +59,7 @@ Run the script:
 
     python get_tweets_objects.py \
     --path /yourpath/relevant_tweets.tsv \
-    --dataset event2012.tsv
+    --dataset event2012
     --app_key mIsU1P0NNjUTf9DjuN6pdqyOF \
     --app_secret KAd5dpgRlu0X3yizTfXTD3lZOAkF7x0QAEhAMHpVCufGW4y0t0 \
     --oauth_token 4087833385208874171-k6UR7OGNFdfBcqPye8ps8uBSSqOYXm \
