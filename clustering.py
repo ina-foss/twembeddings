@@ -19,6 +19,16 @@ parser.add_argument('--model',
                     One or several text embeddings
                     """
                     )
+parser.add_argument('--dataset',
+                    required=True,
+                    help="""
+                    Path to the dataset
+                    """
+                    )
+
+parser.add_argument('--lang',
+                    required=True,
+                    choices=["en", "fr"])
 
 
 def main(args):
