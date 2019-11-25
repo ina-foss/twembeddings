@@ -11,6 +11,14 @@ standard :
   text+ : False
 
 # You may configure specific options for each model using the following fields to overwrite standard parameters
+tfidf_all_tweets :
+  save : False
+  threshold :
+    - 0.6
+    - 0.65
+    - 0.7
+    - 0.75
+    - 0.8
 tfidf_dataset :
   save : False
   threshold :
@@ -28,18 +36,18 @@ w2v_gnews_en :
     - 0.40
 sbert_nli_sts:
   threshold:
+    - 0.3
+    - 0.35
     - 0.4
-    - 0.44
-    - 0.48
-    - 0.52
-    - 0.56
+    - 0.45
+    - 0.5
 bert:
   threshold:
     - 0.02
+    - 0.03
     - 0.04
+    - 0.05
     - 0.06
-    - 0.08
-    - 0.1
 elmo:
   threshold:
     - 0.04
@@ -52,5 +60,6 @@ use:
     - 0.18
     - 0.2
     - 0.22
-    - 0.24
-    - 0.26
+    - 0.4
+    - 0.48
+    - 0.5
