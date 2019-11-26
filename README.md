@@ -86,12 +86,13 @@ The script may take some time to run entirely, since it respects the API's
 [rate limit](https://developer.twitter.com/en/docs/basics/rate-limits).
 Because of tweets beeing removed and Twitter accounts being closed, some tweets
 are no longer available. Our last download (November 2019) allowed us to retrieve
-72484 tweets (81% of the original dataset).
+72484 tweets (72% of the original dataset).
 
 ## Download Event2018 dataset
 
 In compliance with Twitter terms of use, we do not share the tweets content,
-but only the tweets IDs. Please write an email to bmazoyer [at] ina.fr to receive the dataset. 
+but only the tweets IDs. The corpus is available [here](https://dataset.ina.fr/corpus).
+Please fill-in the agreement form and indicate the name of the corpus (Event2018) in your application.
 Untar the folder, the labeled tweets are in the `relevant_tweets.tsv` file. 
 
 You can then download the full tweet content by 
@@ -109,7 +110,7 @@ The script may take some time to run entirely, since it respects the API's
 [rate limit](https://developer.twitter.com/en/docs/basics/rate-limits).
 Because of tweets beeing removed and Twitter accounts being closed, some tweets
 are no longer available. Our last download (November 2019) allowed us to retrieve
-72484 tweets (72% of the original dataset).
+77249 tweets (81% of the original dataset).
 
 ## Clustering
 Run clustering with one or several embedding names as `model` parameter.
