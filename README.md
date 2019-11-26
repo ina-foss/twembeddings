@@ -10,6 +10,7 @@ Since some tweets may have probably been erased since we collected the datasets,
  Représentations lexicales pour la détection non supervisée d'événements dans un flux de tweets : 
  étude sur des corpus français et anglais (accepted at EGC 2020).
  
+ ![Clustering results](graphs.png)
 
 ## Summary:
 * [Installation](#installation)
@@ -111,8 +112,6 @@ file.
 | bert-tweets               | -     | -      | 0.02                | 50.02  |
 | elmo                      | 0.08  | 22.48  | 0.2                 | 46.08  |
 | sbert-nli-sts             | 0.39  | 58.24  | -                   | -      |
-| sbert-tweets-sts-long     | -     | -      | 0.36                | 67.89  |
-| sbert-tweets-sts-short    | -     | -      | 0.38                | 65.71  |
 | tfidf-all-tweets          | 0.75  | 70.1   | 0.7                 | 78.05  |
 | tfidf-dataset             | 0.65  | 68.07  | 0.7                 | 74.39  |
 | use                       | 0.22  | 55.71  | 0.46                | 74.57  |
@@ -139,7 +138,6 @@ Additionnal options for each model can be modified in
 | bert-tweets               | -          | 81.77±0.7  |
 | elmo                      | 59.81±0.41 | 73.59±0.64 |
 | sbert-nli-sts             | 80.55±0.33 | -          |
-| sbert-tweets-sts-long     | -          | 86.08±0.86 |
 | tfidf-all-tweets          | 83.5±0.78  | 87.79±0.58 |
 | tfidf-all-tweets svd      | 62.4±0.72  | 75.32±0.88 |
 | tfidf-dataset             | 83.46±0.72 | 87.66±0.69 |
