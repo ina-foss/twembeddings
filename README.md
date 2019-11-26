@@ -11,6 +11,15 @@ Since some tweets may have probably been erased since we collected the datasets,
  étude sur des corpus français et anglais (accepted at EGC 2020).
  
  ![Clustering results](graphs.png)
+Results of the event detection (clustering) algorithm for each embedding type, depending on the threshold (t) parameter.
+
+Some of the embeddings presented on this graph are not available here: 
+* English corpus: w2v-twitter
+* French corpus: w2v-news, w2v-twitter, elmo
+
+All other embeddings are available and the corresponding modules are listed in in the `requirements.txt` file.
+You will only need to install the `bert-as-service` module and run the BERT server (see the [BERT](#bert-bert) section)
+if you want to test the BERT embedding.
 
 ## Summary:
 * [Installation](#installation)
@@ -75,6 +84,9 @@ Run the script:
 
 The script may take some time to run entirely, since it respects the API's 
 [rate limit](https://developer.twitter.com/en/docs/basics/rate-limits).
+Because of tweets beeing removed and Twitter accounts being closed, some tweets
+are no longer available. Our last download (November 2019) allowed us to retrieve
+72484 tweets (81% of the original dataset).
 
 ## Download Event2018 dataset
 
@@ -95,17 +107,24 @@ You can then download the full tweet content by
 
 The script may take some time to run entirely, since it respects the API's 
 [rate limit](https://developer.twitter.com/en/docs/basics/rate-limits).
+Because of tweets beeing removed and Twitter accounts being closed, some tweets
+are no longer available. Our last download (November 2019) allowed us to retrieve
+72484 tweets (72% of the original dataset).
 
 ## Clustering
 Run clustering with one or several embedding names as `model` parameter.
 
     python clustering.py --dataset data/event2012.tsv --lang en --model tfidf_dataset w2v_gnews_en sbert_nli_sts
 
+or
+
+    python clustering.py --dataset data/event2018.tsv --lang fr --model tfidf_dataset tfidf_all_tweets use
+
 You can test several threshold parameters for the First Story Detection
 Algorithm by modifying the 
 [options.yaml](https://github.com/ina-foss/twembeddings/blob/master/options.yaml)
 file.
-### Indicative results
+### Indicative best results
 | Model                     | t (en)| F1 (en)| t (fr)              | F1 (fr)|
 |:--------------------------|:------|:-------|:--------------------|:-------|
 | bert                      | 0.04  | 39.22  | 0.04                | 44.79  |
@@ -131,8 +150,8 @@ or
 
 Additionnal options for each model can be modified in 
 [options.yaml](https://github.com/ina-foss/twembeddings/blob/master/options.yaml)
-### Indicative results
-| Model                     |F1±ste (en) |F1±ste (fr) |
+### Indicative results (average F1 on 5 runs ± standard deviation)
+| Model                     |F1±std (en) |F1±std (fr) |
 |:--------------------------|:-----------|:-----------|
 | bert                      | 74.49±0.41 | 78.46±0.68 |
 | bert-tweets               | -          | 81.77±0.7  |
