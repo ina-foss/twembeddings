@@ -6,7 +6,7 @@ import pandas as pd
 import argparse
 import logging
 import yaml
-from multiprocessing import Pool
+import multiprocessing
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -69,7 +69,7 @@ def test_params(**params):
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.5, random_state=seed)
         splits.append((X_train, X_test, y_train, y_test, seed))
 
-    p = Pool(processes=4)
+    p = multiprocessing.Pool(processes=min(len(splits), multiprocessing.cpu_count()))
     results = p.starmap(classif, splits)
     params["kernel"] = "triangular"
     for result in results:
