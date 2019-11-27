@@ -2,8 +2,8 @@
 
 This repo aims at letting researchers reproduce our Twitter event detection results on 2 datasets:
 the [Event2012 dataset](https://cs.adelaide.edu.au/~wei/sublinks/papers/2.1.2013CIKM.Building%20a%20Large-scale%20Corpus%20for%20Evaluating%20Event.pdf)
-(English) and the Event2018 dataset (French).
-Since some tweets may have probably been erased since we collected the datasets, we cannot ensure 100% identical results,
+(tweets in English) and the Event2018 dataset (tweets in French, a full description of this dataset has been submitted to LREC 2020).
+Since some tweets have probably erased since we collected the datasets, we cannot ensure 100% identical results,
  but we are confident that the comparative performance of the models will remain unchanged.
  
  Details of the implemented approaches can be found in our publication: 
@@ -11,15 +11,15 @@ Since some tweets may have probably been erased since we collected the datasets,
  étude sur des corpus français et anglais (accepted at EGC 2020).
  
  ![Clustering results](graphs.png)
-Results of the event detection (clustering) algorithm for each embedding type, depending on the threshold (t) parameter.
+*Results of our unsupervised event detection (clustering) algorithm for each embedding type, depending on the threshold (t) parameter.*
 
 Some of the embeddings presented on this graph are not available here: 
 * English corpus: w2v-twitter
 * French corpus: w2v-news, w2v-twitter, elmo
 
-All other embeddings are available and the corresponding modules are listed in in the `requirements.txt` file.
-You will only need to install the `bert-as-service` module and run the BERT server (see the [BERT](#bert-bert) section)
-if you want to test the BERT embedding.
+All other embeddings are available and the corresponding modules are listed in the `requirements.txt` file.
+You will only need to install the `bert-as-service` module ([see the BERT section](#bert-bert)) and run the BERT server 
+to test the BERT embedding.
 
 ## Summary:
 * [Installation](#installation)
@@ -91,7 +91,7 @@ are no longer available. Our last download (November 2019) allowed us to retriev
 ## Download Event2018 dataset
 
 In compliance with Twitter terms of use, we do not share the tweets content,
-but only the tweets IDs. The corpus is available [here](https://dataset.ina.fr/corpus).
+but only the tweets IDs. The corpus is available [here](https://dataset.ina.fr/corpus/index.action?request_locale=en).
 Please fill-in the agreement form and indicate the name of the corpus (Event2018) in your application.
 Untar the folder, the labeled tweets are in the `relevant_tweets.tsv` file. 
 
