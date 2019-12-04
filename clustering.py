@@ -36,13 +36,15 @@ def main(args):
         options = yaml.safe_load(f)
     for model in args["model"]:
         params = options["standard"]
-        params["model"] = model
         logging.info("Clustering with {} model".format(model))
         if model in options:
             # overwrite standard parameters if specified in options.yaml file
             for opt in options[model]:
                 params[opt] = options[model][opt]
                 logging.info("Param '{}' : {}".format(opt, options[model][opt]))
+        for arg in args:
+            params[arg] = args[arg]
+        params["model"] = model
         test_params(**params)
 
 
