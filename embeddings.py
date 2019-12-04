@@ -77,8 +77,8 @@ class W2V:
         del self.wv
         return vectors
 
-    def compute_weighted_vectors(self, data, dataset):
-        tfidf = TfIdf().load_history(dataset)
+    def compute_weighted_vectors(self, data, lang):
+        tfidf = TfIdf().load_history(lang)
         logging.info("compute vectors")
         text = self.preprocess(data)
         vectors = np.zeros((len(text), self.n_features))
@@ -107,11 +107,11 @@ class TfIdf:
         elif lang == "en":
             self.stop_words = STOP_WORDS_EN
 
-    def load_history(self, dataset):
-        if dataset.startswith("event2018"):
+    def load_history(self, lang):
+        if lang == "fr":
             dataset = "event2018"
         else:
-            dataset = dataset.split("/")[-1].replace(".tsv", "")
+            dataset = "event2012"
         for attr in ["df", "features_names", "n_samples"]:
             with open("./models/" + dataset + "_" + attr, "rb") as f:
                 setattr(self, attr, pickle.load(f))

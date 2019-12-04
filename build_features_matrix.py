@@ -149,7 +149,7 @@ def build_matrix(**args):
     if args["model"].startswith("tfidf"):
         vectorizer = TfIdf(lang=args["lang"])
         if args["model"].endswith("all_tweets"):
-            vectorizer.load_history(args["dataset"])
+            vectorizer.load_history(args["lang"])
         data.text = data.text.apply(format_text,
                                     remove_mentions=True,
                                     unidecode=True,
@@ -183,7 +183,7 @@ def build_matrix(**args):
                                         hashtag_split=args["hashtag_split"]
                                         )
         if args["tfidf_weights"]:
-            X = vectorizer.compute_weighted_vectors(data, args["dataset"])
+            X = vectorizer.compute_weighted_vectors(data, args["lang"])
         else:
             X = vectorizer.compute_vectors(data)
 
