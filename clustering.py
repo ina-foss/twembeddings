@@ -30,6 +30,16 @@ parser.add_argument('--lang',
                     required=True,
                     choices=["en", "fr"])
 
+parser.add_argument('--annotation',
+                    required=False,
+                    default="annotated",
+                    choices=["examined", "annotated", "no"])
+
+parser.add_argument('--threshold',
+                    nargs='+',
+                    required=False
+                    )
+
 
 def main(args):
     with open("options.yaml", "r") as f:
@@ -41,7 +51,6 @@ def main(args):
             # overwrite standard parameters if specified in options.yaml file
             for opt in options[model]:
                 params[opt] = options[model][opt]
-                logging.info("Param '{}' : {}".format(opt, options[model][opt]))
         for arg in args:
             params[arg] = args[arg]
         params["model"] = model
@@ -59,7 +68,7 @@ def test_params(**params):
     thresholds = params.pop("threshold")
     for t in thresholds:
         logging.info("threshold: {}".format(t))
-        clustering = ClusteringAlgo(threshold=t, window_size=params["window"], batch_size=params["batch_size"],
+        clustering = ClusteringAlgo(threshold=int(t), window_size=params["window"], batch_size=params["batch_size"],
                                     distance=params["distance"])
         clustering.add_vectors(X)
         y_pred = clustering.incremental_clustering()
