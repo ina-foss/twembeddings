@@ -68,7 +68,7 @@ def test_params(**params):
     thresholds = params.pop("threshold")
     for t in thresholds:
         logging.info("threshold: {}".format(t))
-        clustering = ClusteringAlgo(threshold=int(t), window_size=params["window"], batch_size=params["batch_size"],
+        clustering = ClusteringAlgo(threshold=float(t), window_size=params["window"], batch_size=params["batch_size"],
                                     distance=params["distance"])
         clustering.add_vectors(X)
         y_pred = clustering.incremental_clustering()
