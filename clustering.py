@@ -32,7 +32,6 @@ parser.add_argument('--lang',
 
 parser.add_argument('--annotation',
                     required=False,
-                    default="annotated",
                     choices=["examined", "annotated", "no"])
 
 parser.add_argument('--threshold',
@@ -52,7 +51,8 @@ def main(args):
             for opt in options[model]:
                 params[opt] = options[model][opt]
         for arg in args:
-            params[arg] = args[arg]
+            if args[arg]:
+                params[arg] = args[arg]
         params["model"] = model
         test_params(**params)
 

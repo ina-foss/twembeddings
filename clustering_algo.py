@@ -1,6 +1,7 @@
 from sklearn.neighbors import NearestNeighbors
 from scipy.sparse import csr_matrix, vstack, issparse
 import numpy as np
+import logging
 import pandas as pd
 
 class ClusteringAlgo:
@@ -31,6 +32,8 @@ class ClusteringAlgo:
         else:
             matrix = self.M[~self.zeros_vectors]
             for idx in range(0, matrix.shape[0], self.batch_size):
+                if idx % 10000 == 0:
+                    logging.info(idx)
                 vectors = matrix[idx:min(idx + self.batch_size, matrix.shape[0])]
                 yield idx, vectors
 

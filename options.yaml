@@ -4,9 +4,9 @@ standard :
   svd : False # turn sparse tf-idf features into dense ones using Singular Value Decomposition
   tfidf_weights: False # use tf-idf weights when averaging Word2Vec vectors
   save : True # save features in the form of a .npy or .npz (for sparse vectors) file
-  save_results: False # save results in a .csv file
-  lang : "en"
-  dataset : "data/event2012.tsv"
+  save_results: True # save results in a .csv file
+  lang : "fr"
+  dataset : "data/event2018.tsv"
   annotation : "annotated"
   text+ : False
 
