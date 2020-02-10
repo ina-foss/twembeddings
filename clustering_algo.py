@@ -1,8 +1,27 @@
 from sklearn.neighbors import NearestNeighbors
-from sklearn.metrics.pairwise import cosine_distances
+from sklearn.preprocessing import normalize
+from sparse_dot_mkl import dot_product_mkl
 from scipy.sparse import csr_matrix, vstack, issparse
 import numpy as np
 import logging
+
+
+def cosine_distances(x, y, intel_mkl=False):
+    x_normalized = normalize(x, copy=True)
+    y_normalized = normalize(y, copy=True)
+    if intel_mkl:
+        s = dot_product_mkl(x_normalized, y_normalized.T.tocsr(), dense=True)
+    else:
+        s = (x_normalized * y_normalized.T).toarray()
+    s *= -1
+    s += 1
+    np.clip(s, 0, 2, out=s)
+    if x is y or y is None:
+        # Ensure that distances between vectors and themselves are set to 0.0.
+        # This may not be the case due to floating point rounding errors.
+        s[np.diag_indices_from(s)] = 0.0
+    return s
+
 
 class ClusteringAlgo:
 
@@ -90,17 +109,18 @@ class ClusteringAlgo:
 
 class ClusteringAlgoSparse:
 
-    def __init__(self, threshold=0.65, window_size=300000, batch_size=8, distance="cosine", tfidf_t=0, min_words_seed=0):
+    def __init__(self, threshold=0.65, window_size=300000, batch_size=8, tfidf_t=0,
+                 min_words_seed=0, intel_mkl=False):
         self.M = None
         self.t = threshold
         self.w = window_size
         self.batch_size = batch_size
         self.zeros_vectors = None
         self.thread_id = 0
-        self.distance = distance
         self.tfidf_t = tfidf_t
         self.nnz_length = None
         self.min_words_seed = min_words_seed
+        self.intel_mkl = intel_mkl
 
     def add_vectors(self, vectors):
         self.M = vectors
@@ -118,7 +138,7 @@ class ClusteringAlgoSparse:
             yield idx, vectors, local_mask, T, window_mask
 
     def brute_nn(self, data, tweets):
-        distances = cosine_distances(tweets, data)
+        distances = cosine_distances(tweets, data, self.intel_mkl)
         neighbors = distances.argmin(axis=1)
         return distances[range(distances.shape[0]), neighbors], neighbors
 

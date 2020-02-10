@@ -65,10 +65,9 @@ def test_params(**params):
     thresholds = params.pop("threshold")
     for t in thresholds:
         logging.info("threshold: {}".format(t))
-        if params["model"].startswith("tfidf"):
+        if params["model"].startswith("tfidf") and params["distance"] == "cosine":
             clustering = ClusteringAlgoSparse(threshold=float(t), window_size=params["window"],
-                                        batch_size=params["batch_size"],
-                                        distance=params["distance"])
+                                              batch_size=params["batch_size"], intel_mkl=True)
         else:
             clustering = ClusteringAlgo(threshold=float(t), window_size=params["window"],
                                         batch_size=params["batch_size"],
