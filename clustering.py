@@ -1,10 +1,9 @@
 from build_features_matrix import build_matrix, load_dataset, load_matrix
-from clustering_algo import ClusteringAlgo
+from clustering_algo import ClusteringAlgo, ClusteringAlgoSparse
 import numpy as np
 from eval import general_statistics, cluster_event_match, mcminn_eval
 import pandas as pd
 import logging
-from scipy.sparse import issparse, hstack, csr_matrix
 import yaml
 import argparse
 
@@ -58,18 +57,22 @@ def main(args):
 
 
 def test_params(**params):
-    data = load_dataset(dataset=params["dataset"], annotation=params["annotation"], text=params["text+"])
-    X = load_matrix(**params)
-    if X is None:
-        X = build_matrix(**params)
+    X, data = build_matrix(**params)
     params["batch_size"] = 8
     params["window"] = int(data.groupby("date").size().mean()//params["batch_size"]*params["batch_size"])
+    logging.info("window size: {}".format(params["window"]))
     params["distance"] = "cosine"
     thresholds = params.pop("threshold")
     for t in thresholds:
         logging.info("threshold: {}".format(t))
-        clustering = ClusteringAlgo(threshold=float(t), window_size=params["window"], batch_size=params["batch_size"],
-                                    distance=params["distance"])
+        if params["model"].startswith("tfidf"):
+            clustering = ClusteringAlgoSparse(threshold=float(t), window_size=params["window"],
+                                        batch_size=params["batch_size"],
+                                        distance=params["distance"])
+        else:
+            clustering = ClusteringAlgo(threshold=float(t), window_size=params["window"],
+                                        batch_size=params["batch_size"],
+                                        distance=params["distance"])
         clustering.add_vectors(X)
         y_pred = clustering.incremental_clustering()
         stats = general_statistics(y_pred)
@@ -89,7 +92,7 @@ def test_params(**params):
             except FileNotFoundError:
                 results = pd.DataFrame()
             stats = results.append(stats, ignore_index=True)
-            stats.to_csv("results_clustering.csv")
+            stats.to_csv("results_clustering.csv", index=False)
 
 
 if __name__ == '__main__':

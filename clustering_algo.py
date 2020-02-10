@@ -1,8 +1,8 @@
 from sklearn.neighbors import NearestNeighbors
+from sklearn.metrics.pairwise import cosine_distances
 from scipy.sparse import csr_matrix, vstack, issparse
 import numpy as np
 import logging
-import pandas as pd
 
 class ClusteringAlgo:
 
@@ -85,4 +85,73 @@ class ClusteringAlgo:
         total_threads_with_zeros_vectors = np.zeros(self.M.shape[0], dtype="int")
         total_threads_with_zeros_vectors[self.zeros_vectors] = -1
         total_threads_with_zeros_vectors[~self.zeros_vectors] = total_threads
+        return total_threads_with_zeros_vectors.tolist()
+
+
+class ClusteringAlgoSparse:
+
+    def __init__(self, threshold=0.65, window_size=300000, batch_size=8, distance="cosine", tfidf_t=0, min_words_seed=0):
+        self.M = None
+        self.t = threshold
+        self.w = window_size
+        self.batch_size = batch_size
+        self.zeros_vectors = None
+        self.thread_id = 0
+        self.distance = distance
+        self.tfidf_t = tfidf_t
+        self.nnz_length = None
+        self.min_words_seed = min_words_seed
+
+    def add_vectors(self, vectors):
+        self.M = vectors
+        self.zeros_vectors = vectors.getnnz(1) == 0
+
+    def iter_on_matrix(self, matrix):
+        mask = self.get_mask(matrix)
+        for idx in range(0, self.nnz_length, self.batch_size):
+            if idx % 10000 == 0:
+                logging.info(idx)
+            local_mask = mask[idx:min(idx + self.batch_size, self.nnz_length)]
+            vectors = matrix[idx:min(idx + self.batch_size, self.nnz_length)]
+            window_mask = mask[max(0, idx-self.w):idx]
+            T = matrix[max(0, idx-self.w):idx][window_mask]
+            yield idx, vectors, local_mask, T, window_mask
+
+    def brute_nn(self, data, tweets):
+        distances = cosine_distances(tweets, data)
+        neighbors = distances.argmin(axis=1)
+        return distances[range(distances.shape[0]), neighbors], neighbors
+
+    def get_mask(self, matrix):
+        mask_min_weight = (matrix.max(axis=1) > self.tfidf_t).T.A.ravel()
+        mask_min_words = (matrix.getnnz(1) > self.min_words_seed).ravel()
+        return mask_min_weight*mask_min_words
+
+    def incremental_clustering(self,):
+        matrix = self.M[~self.zeros_vectors]
+        self.nnz_length = matrix.shape[0]
+        threads = np.zeros(self.nnz_length, dtype="int")
+        for i, tweets, mask, T, window_mask in self.iter_on_matrix(matrix):
+            j = i + tweets.shape[0]
+            if i == 0:
+                threads[:j][mask] = range(len(threads[:j][mask]))
+                threads[:j][~mask] = -2
+                self.thread_id = self.thread_id + j
+            else:
+                distances, neighbors = self.brute_nn(T, tweets)
+                under_t = np.array(distances) < self.t
+                # points that have a close neighbor in the window get the label of that neighbor
+                threads[i:j][under_t] = threads[max(0, i-self.w):i][window_mask][neighbors[under_t]]
+                # assign new labels to points that do not have close enough neighbors - except those that are ignored
+                threads[i:j][~under_t] = -2
+                clustered = ~under_t[mask]
+                new_labels = range(self.thread_id, self.thread_id + clustered.sum())
+                threads[i:j].flat[np.flatnonzero(mask)[clustered]] = new_labels
+
+                if new_labels:
+                    self.thread_id = max(new_labels) + 1
+
+        total_threads_with_zeros_vectors = np.zeros(self.M.shape[0], dtype="int")
+        total_threads_with_zeros_vectors[self.zeros_vectors] = -1
+        total_threads_with_zeros_vectors[~self.zeros_vectors] = threads
         return total_threads_with_zeros_vectors.tolist()
