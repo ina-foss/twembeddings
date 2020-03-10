@@ -10,6 +10,9 @@ import re
 import csv
 from unidecode import unidecode
 from datetime import datetime, timedelta
+
+__all__ = ['build_matrix', 'load_dataset', 'load_matrix']
+
 ES_DATE_FORMAT = "%a %b %d %H:%M:%S +0000 %Y"
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s : %(message)s', level=logging.INFO)

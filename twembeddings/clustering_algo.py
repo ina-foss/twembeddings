@@ -5,6 +5,7 @@ from scipy.sparse import csr_matrix, vstack, issparse
 import numpy as np
 import logging
 
+__all__ = ['ClusteringAlgo', 'ClusteringAlgoSparse']
 
 def cosine_distances(x, y, intel_mkl=False):
     x_normalized = normalize(x, copy=True)
