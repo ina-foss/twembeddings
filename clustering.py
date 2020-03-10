@@ -1,7 +1,7 @@
-from build_features_matrix import build_matrix, load_dataset, load_matrix
-from clustering_algo import ClusteringAlgo, ClusteringAlgoSparse
+from twembeddings import build_matrix, load_dataset, load_matrix
+from twembeddings import ClusteringAlgo, ClusteringAlgoSparse
 import numpy as np
-from eval import general_statistics, cluster_event_match, mcminn_eval
+from twembeddings import general_statistics, cluster_event_match, mcminn_eval
 import pandas as pd
 import logging
 import yaml
