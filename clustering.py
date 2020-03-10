@@ -92,6 +92,7 @@ def test_params(**params):
                 results = pd.DataFrame()
             stats = results.append(stats, ignore_index=True)
             stats.to_csv("results_clustering.csv", index=False)
+            logging.info("Saved results to results_clustering.csv")
 
 
 if __name__ == '__main__':
