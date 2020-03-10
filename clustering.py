@@ -43,14 +43,16 @@ def main(args):
     with open("options.yaml", "r") as f:
         options = yaml.safe_load(f)
     for model in args["model"]:
+        # load standard parameters
         params = options["standard"]
         logging.info("Clustering with {} model".format(model))
         if model in options:
-            # overwrite standard parameters if specified in options.yaml file
+            # change standard parameters for this specific model
             for opt in options[model]:
                 params[opt] = options[model][opt]
         for arg in args:
             if args[arg]:
+                # params from command line overwrite options.yaml file
                 params[arg] = args[arg]
         params["model"] = model
         test_params(**params)
