@@ -1,4 +1,4 @@
-from twembeddings import build_matrix, load_dataset, load_matrix
+from twembeddings import build_matrix
 from twembeddings import ClusteringAlgo, ClusteringAlgoSparse
 import numpy as np
 from twembeddings import general_statistics, cluster_event_match, mcminn_eval

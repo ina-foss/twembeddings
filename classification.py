@@ -1,4 +1,4 @@
-from twembeddings import build_matrix, load_dataset
+from twembeddings import build_matrix
 from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import precision_recall_fscore_support, euclidean_distances
