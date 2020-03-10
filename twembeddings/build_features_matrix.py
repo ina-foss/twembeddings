@@ -2,7 +2,7 @@
 import argparse
 import logging
 import pandas as pd
-from embeddings import TfIdf, W2V, BERT, SBERT, Elmo, ResNetLayer, DenseNetLayer, USE
+from .embeddings import TfIdf, W2V, BERT, SBERT, Elmo, ResNetLayer, DenseNetLayer, USE
 from scipy.sparse import issparse, save_npz, load_npz
 import numpy as np
 import os

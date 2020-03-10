@@ -10,7 +10,7 @@ import os.path
 import re
 from unidecode import unidecode
 from tqdm import tqdm
-from stop_words import STOP_WORDS_FR, STOP_WORDS_EN
+from .stop_words import STOP_WORDS_FR, STOP_WORDS_EN
 import warnings
 
 __all__ = ['W2V', 'TfIdf', 'BERT', 'SBERT', 'Elmo', 'USE', 'DenseNetLayer', 'ResNetLayer', 'SIFT']
