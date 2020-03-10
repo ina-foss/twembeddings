@@ -2,12 +2,12 @@ import logging
 import pandas as pd
 import numpy as np
 import time
-from sklearn.utils.linear_assignment_ import linear_assignment
+from scipy.optimize import linear_sum_assignment
 from sklearn.preprocessing import OrdinalEncoder
 from collections import Counter
 from sklearn import metrics
 
-__all__ = ['general_statistics', 'cluster_event_match', 'mcminn_eval']
+__all__ = ['general_statistics', 'cluster_event_match', 'mcminn_eval', 'cluster_acc']
 
 def vizualize(vectors, data):
     labels = data.label.unique()
@@ -47,6 +47,7 @@ def vizualize(vectors, data):
     logging.info("mean inter distance: {}".format(np.array(inter_dist).mean()))
     logging.info("mean intra distance: {}".format(np.array(intra_dist).mean()))
 
+
 def cluster_acc(data, pred):
     """
     Calculate clustering accuracy.
@@ -68,7 +69,7 @@ def cluster_acc(data, pred):
     w = np.zeros((D, D), dtype=np.int64)
     for i in range(y_pred.size):
         w[y_pred[i], y_true[i]] += 1
-    ind = linear_assignment(w.max() - w) # Optimal label mapping based on the Hungarian algorithm
+    ind = linear_sum_assignment(w.max() - w) # Optimal label mapping based on the Hungarian algorithm
 
     return sum([w[i, j] for i, j in ind]) * 1.0 / y_pred.size
 
