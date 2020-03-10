@@ -114,14 +114,14 @@ class TfIdf:
         else:
             dataset = "event2012"
         for attr in ["df", "features_names", "n_samples"]:
-            with open("./models/" + dataset + "_" + attr, "rb") as f:
+            with open("twembeddings/models/" + dataset + "_" + attr, "rb") as f:
                 setattr(self, attr, pickle.load(f))
         return self
 
     def save(self, dataset):
         dataset = dataset.split("/")[-1].replace(".tsv", "")
         for attr in ["df", "features_names", "n_samples"]:
-            with open("./models/" + dataset + "_" + attr, "wb") as f:
+            with open("twembeddings/models/" + dataset + "_" + attr, "wb") as f:
                 pickle.dump(getattr(self, attr), f)
 
     def get_new_features(self, data):
