@@ -122,7 +122,6 @@ class ClusteringAlgoSparse:
         self.nnz_length = None
         self.min_words_seed = min_words_seed
         self.intel_mkl = intel_mkl
-        logging.info("intel_mkl: " + str(intel_mkl))
 
     def add_vectors(self, vectors):
         self.M = vectors
