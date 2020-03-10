@@ -52,8 +52,7 @@ def kernel(X, Y):
 
 
 def test_params(**params):
-    data = load_dataset(dataset=params["dataset"], annotation=params["annotation"], text=params["text+"])
-    X = build_matrix(**params)
+    X, data = build_matrix(**params)
     y = data.label.astype(int).values
     display_df = pd.DataFrame()
     logging.info("Start SVM classification. This may take some time...")
@@ -83,6 +82,7 @@ def test_params(**params):
             display_df[["f1"]].mean().round(2).values[0],
             display_df[["f1"]].std().round(2).values[0])
     )
+
 
 if __name__ == '__main__':
     args = vars(parser.parse_args())

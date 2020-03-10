@@ -141,11 +141,12 @@ def load_dataset(dataset, annotation, text=False):
 
 def build_matrix(**args):
     X = load_matrix(**args)
-    if X is not None:
-        logging.info("Matrix already stored")
-        return X
     if args["model"] in text_embeddings:
         data = load_dataset(args["dataset"], args["annotation"], args["text+"])
+    if X is not None:
+        logging.info("Matrix already stored")
+        return X, data
+
     if args["model"].startswith("tfidf"):
         vectorizer = TfIdf(lang=args["lang"])
         if args["model"].endswith("all_tweets"):
@@ -238,7 +239,7 @@ def build_matrix(**args):
     if args["save"]:
         save_matrix(X, **args)
 
-    return X
+    return X, data
 
 
 if __name__ == '__main__':
