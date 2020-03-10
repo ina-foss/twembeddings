@@ -3,12 +3,14 @@
 This repo aims at letting researchers reproduce our Twitter event detection results on 2 datasets:
 the [Event2012 dataset](https://cs.adelaide.edu.au/~wei/sublinks/papers/2.1.2013CIKM.Building%20a%20Large-scale%20Corpus%20for%20Evaluating%20Event.pdf)
 (tweets in English) and the Event2018 dataset (tweets in French, a full description of this dataset has been submitted to LREC 2020).
-Since some tweets have probably erased since we collected the datasets, we cannot ensure 100% identical results,
+Since some tweets have probably been erased since we collected the datasets, we cannot ensure 100% identical results,
  but we are confident that the comparative performance of the models will remain unchanged.
  
  Details of the implemented approaches can be found in our publication: 
- Représentations lexicales pour la détection non supervisée d'événements dans un flux de tweets : 
- étude sur des corpus français et anglais (accepted at EGC 2020).
+Mazoyer, B., Hervé, N., Hudelot, C., & Cagé, J. (2020). 
+[“Représentations lexicales pour la détection non supervisée d’événements dans un flux de tweets : 
+étude sur des corpus français et anglais”.](https://arxiv.org/abs/2001.04139)
+ In “Extraction et Gestion des Connaissances (EGC 2020)”
  
  ![Clustering results](graphs.png)
 *Results of our unsupervised event detection (clustering) algorithm for each embedding type, depending on the threshold (t) parameter.*
