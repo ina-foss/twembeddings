@@ -5,6 +5,7 @@ setup(name='twembeddings',
       description='event detection in tweets',
       url='https://github.com/ina-foss/twembeddings',
       author='Béatrice Mazoyer',
+      author_email='beatrice.mazoyer [at] centralesupelec.fr',
       license='MIT',
       packages=['twembeddings'],
       install_requires=[

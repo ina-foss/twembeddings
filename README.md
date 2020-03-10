@@ -48,12 +48,12 @@ We recommand using Anaconda 3 to create a python 3.6 environment
     conda create -n "twembeddings" python=3.6.9
     source activate twembeddings
     
-Then clone the repo and install the complementary requirements:
+Then clone the repo and install the module:
 
     cd $HOME
     git clone https://github.com/bmaz/twembeddings.git
     cd twembeddings
-    pip install -r requirements.txt
+    pip install .
     
 ## Download Event2012 dataset
 
