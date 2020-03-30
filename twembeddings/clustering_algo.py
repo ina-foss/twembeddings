@@ -4,6 +4,7 @@ from sparse_dot_mkl import dot_product_mkl
 from scipy.sparse import csr_matrix, vstack, issparse
 import numpy as np
 import logging
+import numba
 
 __all__ = ['ClusteringAlgo', 'ClusteringAlgoSparse']
 
@@ -110,8 +111,8 @@ class ClusteringAlgo:
 
 class ClusteringAlgoSparse:
 
-    def __init__(self, threshold=0.65, window_size=300000, batch_size=8, tfidf_t=0.21,
-                 min_words_seed=5, intel_mkl=False):
+    def __init__(self, threshold=0.65, window_size=300000, batch_size=8, tfidf_t=0,
+                 min_words_seed=0, intel_mkl=False):
         self.M = None
         self.t = threshold
         self.w = window_size
