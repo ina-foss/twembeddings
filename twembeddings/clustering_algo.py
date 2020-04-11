@@ -4,7 +4,6 @@ from sparse_dot_mkl import dot_product_mkl
 from scipy.sparse import csr_matrix, vstack, issparse
 import numpy as np
 import logging
-import numba
 
 __all__ = ['ClusteringAlgo', 'ClusteringAlgoSparse']
 
