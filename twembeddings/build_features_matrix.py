@@ -151,7 +151,7 @@ def build_matrix(**args):
         return X, data
 
     if args["model"].startswith("tfidf"):
-        vectorizer = TfIdf(lang=args["lang"])
+        vectorizer = TfIdf(lang=args["lang"], binary=args["binary"])
         if args["model"].endswith("all_tweets"):
             vectorizer.load_history(args["lang"])
         data.text = data.text.apply(format_text,
@@ -275,6 +275,14 @@ if __name__ == '__main__':
                         Only for TfIdf embedding: create a dense matrix of shape (n_documents, 100) 
                         using Singular Value Decomposition
                         """)
+    parser.add_argument('--binary', dest="binary", default=True,
+                        action="store_false",
+                        help="""
+                        Only for TfIdf embedding: if True, all non-zero term counts are set to 1. 
+                        This does not mean outputs will have only 0/1 values, only that the tf term 
+                        in tf-idf is binary.
+                        """)
+
     parser.add_argument("--hashtag_split", dest="hashtag_split", default=False,
                         action="store_true",
                         help="""

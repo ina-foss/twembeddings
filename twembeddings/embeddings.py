@@ -98,11 +98,12 @@ class W2V:
 
 
 class TfIdf:
-    def __init__(self, lang="fr"):
+    def __init__(self, lang="fr", binary=True):
         self.df = np.array([])
         self.features_names = []
         self.n_samples = 0
         self.name = "tfidf"
+        self.binary = binary
         if lang == "fr":
             self.stop_words = STOP_WORDS_FR
         elif lang == "en":
@@ -135,7 +136,7 @@ class TfIdf:
 
     def build_count_vectors(self, data):
         # sort words following features_name order, absent words will be counted as 0
-        count_model = CountVectorizer(binary=True, vocabulary=self.features_names)
+        count_model = CountVectorizer(binary=self.binary, vocabulary=self.features_names)
         return count_model.transform(data["text"].tolist())
 
     def compute_df(self, count_vectors):
