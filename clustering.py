@@ -6,6 +6,7 @@ import pandas as pd
 import logging
 import yaml
 import argparse
+# from sklearn.cluster import DBSCAN
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s : %(message)s', level=logging.INFO)
 text_embeddings = ['tfidf_dataset', 'tfidf_all_tweets', 'w2v_gnews_en', "elmo", "bert", "sbert_nli_sts", "use"]
@@ -64,9 +65,12 @@ def test_params(**params):
     params["window"] = int(data.groupby("date").size().mean()//params["batch_size"]*params["batch_size"])
     logging.info("window size: {}".format(params["window"]))
     params["distance"] = "cosine"
+    # params["algo"] = "DBSCAN"
+    # params["min_samples"] = 5
     thresholds = params.pop("threshold")
     for t in thresholds:
         logging.info("threshold: {}".format(t))
+        # clustering = DBSCAN(eps=t, metric=params["distance"], min_samples=params["min_samples"]).fit(X)
         if params["model"].startswith("tfidf") and params["distance"] == "cosine":
             clustering = ClusteringAlgoSparse(threshold=float(t), window_size=params["window"],
                                               batch_size=params["batch_size"], intel_mkl=False)
@@ -76,6 +80,7 @@ def test_params(**params):
                                         distance=params["distance"])
         clustering.add_vectors(X)
         y_pred = clustering.incremental_clustering()
+        # y_pred = clustering.labels_
         stats = general_statistics(y_pred)
         p, r, f1 = cluster_event_match(data, y_pred)
         try:
