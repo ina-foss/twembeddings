@@ -139,7 +139,7 @@ def load_dataset(dataset, annotation, text=False):
     if text == "text+" and "text+quote+reply" in data.columns:
         data = data.rename(columns={"text": "text_not_formated", "text+quote+reply": "text"})
     data["date"] = data["created_at"].apply(find_date_created_at)
-    return data.drop_duplicates("id").sort_values("id").reset_index()
+    return data.drop_duplicates("id").sort_values("id").reset_index(drop=True)
 
 
 def build_matrix(**args):
