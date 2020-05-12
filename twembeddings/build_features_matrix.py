@@ -127,7 +127,7 @@ def load_dataset(dataset, annotation, text=False):
     data = pd.read_csv(dataset,
                        sep="\t",
                        quoting=csv.QUOTE_ALL,
-                       dtype={"id": str}
+                       dtype={"id": int, "label": float, "created_at": str, "text": str}
                        )
     if annotation == "annotated" and "label" in data.columns:
         data = data[data.label.notna()]
