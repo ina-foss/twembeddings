@@ -12,7 +12,8 @@ Since some tweets have probably been erased since we collected the datasets, we 
 Mazoyer, B., Hervé, N., Hudelot, C., & Cagé, J. (2020). 
 [“Représentations lexicales pour la détection non supervisée d’événements dans un flux de tweets : 
 étude sur des corpus français et anglais”.](https://arxiv.org/abs/2001.04139)
- In “Extraction et Gestion des Connaissances (EGC 2020)”
+ In “Extraction et Gestion des Connaissances (EGC 2020)”.
+ 
  If you don't speak French, the broad principles of the event detection method are detailed in:
  Mazoyer, B., Cagé, J., Hervé, N. & Hudelot, C. (2020). [“A French Corpus for Event Detection on 
 Twitter”](http://www.lrec-conf.org/proceedings/lrec2020/pdf/2020.lrec-1.763.pdf).
