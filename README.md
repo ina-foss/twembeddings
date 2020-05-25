@@ -3,7 +3,8 @@
 This repo aims at letting researchers reproduce our Twitter event detection results on 2 datasets:
 the [Event2012 dataset](https://cs.adelaide.edu.au/~wei/sublinks/papers/2.1.2013CIKM.Building%20a%20Large-scale%20Corpus%20for%20Evaluating%20Event.pdf)
 (tweets in English) and the Event2018 dataset (tweets in French, a full description of this dataset
-is provided in [our paper](http://www.lrec-conf.org/proceedings/lrec2020/pdf/2020.lrec-1.763.pdf)
+is provided in [our paper](http://www.lrec-conf.org/proceedings/lrec2020/pdf/2020.lrec-1.763.pdf).)
+
 Since some tweets have probably been erased since we collected the datasets, we cannot ensure 100% identical results,
  but we are confident that the comparative performance of the models will remain unchanged.
  
