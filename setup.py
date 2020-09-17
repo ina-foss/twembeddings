@@ -23,7 +23,6 @@ setup(name='twembeddings',
         "unidecode",
         "twython",
         "pyyaml",
-        "mkl",
         "sparse_dot_mkl"
       ],
       zip_safe=False)

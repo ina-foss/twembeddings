@@ -1,17 +1,19 @@
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import normalize
-from sparse_dot_mkl import dot_product_mkl
+# from sparse_dot_mkl import dot_product_mkl
 from scipy.sparse import csr_matrix, vstack, issparse
 import numpy as np
 import logging
 
 __all__ = ['ClusteringAlgo', 'ClusteringAlgoSparse']
 
+
 def cosine_distances(x, y, intel_mkl=False):
     x_normalized = normalize(x, copy=True)
     y_normalized = normalize(y, copy=True)
     if intel_mkl:
-        s = dot_product_mkl(x_normalized, y_normalized.T.tocsr(), dense=True)
+        # s = dot_product_mkl(x_normalized, y_normalized.T.tocsr(), dense=True)
+        pass
     else:
         s = (x_normalized * y_normalized.T).toarray()
     s *= -1
@@ -47,7 +49,7 @@ class ClusteringAlgo:
             matrix = self.M[~self.zeros_vectors][:, ~self.zeros_vectors]
             for idx in range(0, matrix.shape[0], self.batch_size):
                 lim = min(idx + self.batch_size, matrix.shape[0])
-                vectors = matrix[idx:lim, max(lim-self.w, 0):lim]
+                vectors = matrix[idx:lim, max(lim - self.w, 0):lim]
                 yield idx, vectors
         else:
             matrix = self.M[~self.zeros_vectors]
@@ -66,7 +68,7 @@ class ClusteringAlgo:
         distance, neighbor_exact = nn.kneighbors(tweets)
         return distance.transpose()[0], neighbor_exact.transpose()[0]
 
-    def incremental_clustering(self,):
+    def incremental_clustering(self, ):
         if issparse(self.M):
             T = csr_matrix((self.w, self.M.shape[1]))
         else:
@@ -134,8 +136,8 @@ class ClusteringAlgoSparse:
                 logging.info(idx)
             local_mask = mask[idx:min(idx + self.batch_size, self.nnz_length)]
             vectors = matrix[idx:min(idx + self.batch_size, self.nnz_length)]
-            window_mask = mask[max(0, idx-self.w):idx]
-            T = matrix[max(0, idx-self.w):idx][window_mask]
+            window_mask = mask[max(0, idx - self.w):idx]
+            T = matrix[max(0, idx - self.w):idx][window_mask]
             yield idx, vectors, local_mask, T, window_mask
 
     def brute_nn(self, data, tweets):
@@ -146,9 +148,9 @@ class ClusteringAlgoSparse:
     def get_mask(self, matrix):
         mask_min_weight = (matrix.max(axis=1) > self.tfidf_t).T.A.ravel()
         mask_min_words = (matrix.getnnz(1) > self.min_words_seed).ravel()
-        return mask_min_weight*mask_min_words
+        return mask_min_weight * mask_min_words
 
-    def incremental_clustering(self,):
+    def incremental_clustering(self, ):
         matrix = self.M[~self.zeros_vectors]
         self.nnz_length = matrix.shape[0]
         threads = np.zeros(self.nnz_length, dtype="int")
@@ -162,7 +164,7 @@ class ClusteringAlgoSparse:
                 distances, neighbors = self.brute_nn(T, tweets)
                 under_t = np.array(distances) < self.t
                 # points that have a close neighbor in the window get the label of that neighbor
-                threads[i:j][under_t] = threads[max(0, i-self.w):i][window_mask][neighbors[under_t]]
+                threads[i:j][under_t] = threads[max(0, i - self.w):i][window_mask][neighbors[under_t]]
                 # assign new labels to points that do not have close enough neighbors - except those that are ignored
                 threads[i:j][~under_t] = -2
                 clustered = ~under_t[mask]
