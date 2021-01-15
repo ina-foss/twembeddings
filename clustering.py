@@ -6,6 +6,7 @@ import pandas as pd
 import logging
 import yaml
 import argparse
+import csv
 # from sklearn.cluster import DBSCAN
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s : %(message)s', level=logging.INFO)
@@ -83,6 +84,17 @@ def test_params(**params):
         # y_pred = clustering.labels_
         stats = general_statistics(y_pred)
         p, r, f1 = cluster_event_match(data, y_pred)
+        data["pred"] = data["pred"].astype(int)
+        candidate_columns = ["date", "time", "label", "pred", "user_id_str", "id"]
+        result_columns = []
+        for rc in candidate_columns:
+            if rc in data.columns:
+                result_columns.append(rc)
+        data[result_columns].to_csv(params["dataset"].replace(".", "_results."),
+                                    index=False,
+                                    sep="\t",
+                                    quoting=csv.QUOTE_ALL
+                                    )
         try:
             mcp, mcr, mcf1 = mcminn_eval(data, y_pred)
         except ZeroDivisionError as error:

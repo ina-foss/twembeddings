@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 __all__ = ['build_matrix', 'load_dataset', 'load_matrix']
 
 TWITTER_DATE_FORMAT = "%a %b %d %H:%M:%S +0000 %Y"
-STANDARD_DATE_FORMAT = "%Y-%m-%d H:M:S"
+STANDARD_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s : %(message)s', level=logging.INFO)
 text_embeddings = ['tfidf_all_tweets', 'tfidf_dataset', 'w2v_afp_fr', 'w2v_gnews_en', 'w2v_twitter_fr',
