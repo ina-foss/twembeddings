@@ -93,7 +93,7 @@ def test_params(**params):
         data[result_columns].to_csv(params["dataset"].replace(".", "_results."),
                                     index=False,
                                     sep="\t",
-                                    quoting=csv.QUOTE_ALL
+                                    quoting=csv.QUOTE_NONE
                                     )
         try:
             mcp, mcr, mcf1 = mcminn_eval(data, y_pred)
