@@ -13,7 +13,8 @@ from datetime import datetime, timedelta
 
 __all__ = ['build_matrix', 'load_dataset', 'load_matrix']
 
-ES_DATE_FORMAT = "%a %b %d %H:%M:%S +0000 %Y"
+TWITTER_DATE_FORMAT = "%a %b %d %H:%M:%S +0000 %Y"
+STANDARD_DATE_FORMAT = "%Y-%m-%d H:M:S"
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s : %(message)s', level=logging.INFO)
 text_embeddings = ['tfidf_all_tweets', 'tfidf_dataset', 'w2v_afp_fr', 'w2v_gnews_en', 'w2v_twitter_fr',
@@ -23,7 +24,12 @@ image_embeddings = ["resnet", "densenet"]
 
 
 def find_date_created_at(created_at):
-    return (datetime.strptime(created_at, ES_DATE_FORMAT) - timedelta(hours=5)).strftime("%Y%m%d")
+    if "+0000" in created_at:
+        d = datetime.strptime(created_at, TWITTER_DATE_FORMAT)
+    else:
+        d = datetime.strptime(created_at, STANDARD_DATE_FORMAT)
+    return d.strftime("%Y%m%d"), d.strftime("%H:%M:%S")
+
 
 def remove_repeted_characters(expr):
     #limit number of repeted letters to 3. For example loooool --> loool
@@ -138,7 +144,7 @@ def load_dataset(dataset, annotation, text=False):
 
     if text == "text+" and "text+quote+reply" in data.columns:
         data = data.rename(columns={"text": "text_not_formated", "text+quote+reply": "text"})
-    data["date"] = data["created_at"].apply(find_date_created_at)
+    data["date"], data["time"] = zip(*data["created_at"].apply(find_date_created_at))
     return data.drop_duplicates("id").sort_values("id").reset_index(drop=True)
 
 
