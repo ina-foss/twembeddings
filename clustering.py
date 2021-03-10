@@ -40,6 +40,12 @@ parser.add_argument('--threshold',
                     required=False
                     )
 
+parser.add_argument('--batch_size',
+                    required=False,
+                    default=8,
+                    type=int
+                    )
+
 
 def main(args):
     with open("options.yaml", "r") as f:
@@ -62,7 +68,6 @@ def main(args):
 
 def test_params(**params):
     X, data = build_matrix(**params)
-    params["batch_size"] = 8
     params["window"] = int(data.groupby("date").size().mean()//params["batch_size"]*params["batch_size"])
     logging.info("window size: {}".format(params["window"]))
     params["distance"] = "cosine"
