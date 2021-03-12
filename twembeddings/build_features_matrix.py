@@ -135,6 +135,7 @@ def load_dataset(dataset, annotation, text=False):
                        quoting=csv.QUOTE_ALL,
                        dtype={"id": str, "label": float, "created_at": str, "text": str}
                        )
+    data.text = data.text.fillna("")
     if annotation == "annotated" and "label" in data.columns:
         data = data[data.label.notna()]
     elif annotation == "examined" and "label" in data.columns:
