@@ -121,6 +121,21 @@ Because of tweets beeing removed and Twitter accounts being closed, some tweets
 are no longer available. Our last download (November 2019) allowed us to retrieve
 77249 tweets (81% of the original dataset).
 
+## Use 'First Story Detection' on you own dataset
+
+Save your Twitter data in the form of a tsv file (csv file with "\t" as separator)
+in the `data` folder with the following column names: 
+
+| id   | label | text  | created_at |
+|:-----|:------|:------|:-----------|
+`created_at` is the date of the tweet. The format can be either `2018-07-16 05:00:56`
+or `Mon Jul 16 05:00:56 +0000 2018` (Twitter format).
+`label` is the ground truth that you may use to evaluate the algorithm. 
+You can leave the column empty if you have no ground truth. You can then run:
+
+    python clustering.py --dataset data/yourfile.tsv --lang en --model tfidf_dataset --threshold 0.7
+
+
 ## Clustering
 Run clustering with one or several embedding names as `model` parameter.
 
