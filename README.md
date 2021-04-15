@@ -135,10 +135,13 @@ or `Mon Jul 16 05:00:56 +0000 2018` (Twitter format).
 `label` is the ground truth that you may use to evaluate the algorithm. 
 You can leave the column empty if you have no ground truth. 
 
-You can then run something like:
+You can then run something like this ( `--annotation no` indicates that you have no annotated ground truth):
 
     python clustering.py --dataset data/yourfile.tsv --lang fr --model tfidf_dataset --threshold 0.7
 
+A new file with the predicted labels in column "pred" will be saved in `data/yourfile_results.tsv`.
+The evaluation of the chosen parameters (if you have ground truth labels to evaluate on) will be saved to
+`results_clustering.csv`.
 
 ## Clustering
 Run clustering with one or several embedding names as `model` parameter.
