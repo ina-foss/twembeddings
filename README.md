@@ -37,6 +37,7 @@ to test the BERT embedding.
     * [Create Twitter API access tokens](#create-twitter-api-access-tokens)
     * [Download tweets' content](#download-tweets-content)
 * [Download Event2018 dataset](#download-event2018-dataset)
+* [Use 'First Story Detection' on you own dataset](#use-first-story-detection-on-you-own-dataset)
 * [Clustering](#clustering)
 * [Classification](#classification)
 * [Available embeddings](#available-embeddings)
