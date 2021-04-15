@@ -132,9 +132,11 @@ in the `data` folder with the following column names:
 `created_at` is the date of the tweet. The format can be either `2018-07-16 05:00:56`
 or `Mon Jul 16 05:00:56 +0000 2018` (Twitter format).
 `label` is the ground truth that you may use to evaluate the algorithm. 
-You can leave the column empty if you have no ground truth. You can then run:
+You can leave the column empty if you have no ground truth. 
 
-    python clustering.py --dataset data/yourfile.tsv --lang en --model tfidf_dataset --threshold 0.7
+You can then run something like:
+
+    python clustering.py --dataset data/yourfile.tsv --lang fr --model tfidf_dataset --threshold 0.7
 
 
 ## Clustering
