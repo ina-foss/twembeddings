@@ -1,5 +1,6 @@
 standard :
 # these options are applied to all models
+  batch_size : 8 # Nearest neighbor search is done in batch. A smaller batch will yield better results but is slower
   hashtag_split: True # split hashtags on capital letters,
   svd : False # turn sparse tf-idf features into dense ones using Singular Value Decomposition
   binary : True #

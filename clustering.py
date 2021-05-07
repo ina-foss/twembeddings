@@ -42,7 +42,6 @@ parser.add_argument('--threshold',
 
 parser.add_argument('--batch_size',
                     required=False,
-                    default=1,
                     type=int
                     )
 
