@@ -162,7 +162,7 @@ def build_matrix(**args):
         if args["model"].endswith("all_tweets"):
             vectorizer.load_history(args["lang"])
         data.text = data.text.apply(format_text,
-                                    remove_mentions=True,
+                                    remove_mentions=args["remove_mentions"],
                                     unidecode=True,
                                     lower=True,
                                     hashtag_split=args["hashtag_split"]
@@ -174,7 +174,7 @@ def build_matrix(**args):
         vectorizer = W2V(args["model"], lang=args["lang"])
         if args["lang"] == "fr":
             data.text = data.text.apply(format_text,
-                                        remove_mentions=True,
+                                        remove_mentions=args["remove_mentions"],
                                         unidecode=True,
                                         lower=True,
                                         hashtag_split=args["hashtag_split"]
@@ -188,7 +188,7 @@ def build_matrix(**args):
                                         )
         elif args["model"] == "w2v_gnews_en":
             data.text = data.text.apply(format_text,
-                                        remove_mentions=True,
+                                        remove_mentions=args["remove_mentions"],
                                         unidecode=False,
                                         lower=False,
                                         hashtag_split=args["hashtag_split"]
@@ -200,7 +200,7 @@ def build_matrix(**args):
 
     elif args["model"] == "elmo":
         data.text = data.text.apply(format_text,
-                                    remove_mentions=False,
+                                    remove_mentions=args["remove_mentions"],
                                     unidecode=False,
                                     lower=False,
                                     hashtag_split=True
@@ -210,7 +210,7 @@ def build_matrix(**args):
 
     elif args["model"].startswith("bert"):
         data.text = data.text.apply(format_text,
-                                    remove_mentions=False,
+                                    remove_mentions=args["remove_mentions"],
                                     unidecode=False,
                                     lower=False,
                                     hashtag_split=True
@@ -220,7 +220,7 @@ def build_matrix(**args):
 
     elif args["model"].startswith("sbert"):
         data.text = data.text.apply(format_text,
-                                    remove_mentions=False,
+                                    remove_mentions=args["remove_mentions"],
                                     unidecode=False,
                                     lower=False,
                                     hashtag_split=True
@@ -230,7 +230,7 @@ def build_matrix(**args):
 
     elif args["model"].startswith("use"):
         data.text = data.text.apply(format_text,
-                                    remove_mentions=False,
+                                    remove_mentions=args["remove_mentions"],
                                     unidecode=False,
                                     lower=False,
                                     hashtag_split=True

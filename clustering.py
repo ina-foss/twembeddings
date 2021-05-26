@@ -45,6 +45,10 @@ parser.add_argument('--batch_size',
                     type=int
                     )
 
+parser.add_argument('--remove_mentions',
+                    action='store_true'
+                    )
+
 
 def main(args):
     with open("options.yaml", "r") as f:
@@ -58,7 +62,7 @@ def main(args):
             for opt in options[model]:
                 params[opt] = options[model][opt]
         for arg in args:
-            if args[arg]:
+            if args[arg] is not None:
                 # params from command line overwrite options.yaml file
                 params[arg] = args[arg]
         params["model"] = model
