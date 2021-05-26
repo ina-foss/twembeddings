@@ -46,7 +46,10 @@ parser.add_argument('--batch_size',
                     )
 
 parser.add_argument('--remove_mentions',
-                    action='store_true'
+                    choices=[0, 1],
+                    default=None,
+                    type=int,
+                    required=False
                     )
 
 parser.add_argument('--window',
@@ -69,7 +72,11 @@ def main(args):
         for arg in args:
             if args[arg] is not None:
                 # params from command line overwrite options.yaml file
-                params[arg] = args[arg]
+                if arg == "remove_mentions":
+                    params[arg] = bool(args[arg])
+                else:
+                    params[arg] = args[arg]
+
         params["model"] = model
         test_params(**params)
 
