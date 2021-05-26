@@ -11,6 +11,7 @@ import re
 from unidecode import unidecode
 from tqdm import tqdm
 from .stop_words import STOP_WORDS_FR, STOP_WORDS_EN
+from fog.tokenizers.words import WordTokenizer, punct_emoji_iter, split_hashtag
 import warnings
 
 __all__ = ['W2V', 'TfIdf', 'BERT', 'SBERT', 'Elmo', 'USE', 'DenseNetLayer', 'ResNetLayer', 'SIFT']
@@ -98,16 +99,29 @@ class W2V:
 
 
 class TfIdf:
-    def __init__(self, lang="fr", binary=True):
+    def __init__(self, lang="fr", binary=True, tokenizer="sklearn"):
         self.df = np.array([])
         self.features_names = []
         self.n_samples = 0
         self.name = "tfidf"
         self.binary = binary
+        self.tokenizer = self.custom_tokenizer if tokenizer=="fog" else None
         if lang == "fr":
             self.stop_words = STOP_WORDS_FR
         elif lang == "en":
             self.stop_words = STOP_WORDS_EN
+
+    def custom_tokenizer(self, document):
+        tokenizer = WordTokenizer(
+            keep=['word', 'mention'],
+            lower=True,
+            unidecode=True,
+            split_hashtags=True,
+            stoplist=self.stop_words + [t + "'" for t in self.stop_words] + [t + "’" for t in self.stop_words],
+            reduce_words=True,
+            decode_html_entities=True
+        )
+        return list(token for _, token in tokenizer(document))
 
     def load_history(self, lang):
         if lang == "fr":
@@ -127,7 +141,7 @@ class TfIdf:
 
     def get_new_features(self, data):
         features_set = set(self.features_names)
-        fit_model = CountVectorizer(stop_words=self.stop_words)
+        fit_model = CountVectorizer(stop_words=self.stop_words, tokenizer=self.tokenizer)
         # see https://towardsdatascience.com/hacking-scikit-learns-vectorizers-9ef26a7170af for custom analyzr/tokenizr
         fit_model.fit(data["text"].tolist())
         for term in fit_model.get_feature_names():
@@ -136,7 +150,7 @@ class TfIdf:
 
     def build_count_vectors(self, data):
         # sort words following features_name order, absent words will be counted as 0
-        count_model = CountVectorizer(binary=self.binary, vocabulary=self.features_names)
+        count_model = CountVectorizer(binary=self.binary, vocabulary=self.features_names, tokenizer=self.tokenizer)
         return count_model.transform(data["text"].tolist())
 
     def compute_df(self, count_vectors):

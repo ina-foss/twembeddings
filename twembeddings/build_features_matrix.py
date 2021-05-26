@@ -158,7 +158,7 @@ def build_matrix(**args):
         return X, data
 
     if args["model"].startswith("tfidf"):
-        vectorizer = TfIdf(lang=args["lang"], binary=args["binary"])
+        vectorizer = TfIdf(lang=args["lang"], binary=args["binary"], tokenizer="sklearn")
         if args["model"].endswith("all_tweets"):
             vectorizer.load_history(args["lang"])
         data.text = data.text.apply(format_text,
