@@ -112,7 +112,7 @@ class ClusteringAlgo:
 
 class ClusteringAlgoSparse:
 
-    def __init__(self, threshold=0.65, window_size=300000, batch_size=8, tfidf_t=0,
+    def __init__(self, threshold=0.65, window_size=300000, batch_size=8, tfidf_t=0.21,
                  min_words_seed=0, intel_mkl=False):
         self.M = None
         self.t = threshold
