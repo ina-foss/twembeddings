@@ -11,7 +11,6 @@ import re
 from unidecode import unidecode
 from tqdm import tqdm
 from .stop_words import STOP_WORDS_FR, STOP_WORDS_EN
-from fog.tokenizers.words import WordTokenizer, punct_emoji_iter, split_hashtag
 import warnings
 
 __all__ = ['W2V', 'TfIdf', 'BERT', 'SBERT', 'Elmo', 'USE', 'DenseNetLayer', 'ResNetLayer', 'SIFT']
@@ -112,6 +111,7 @@ class TfIdf:
             self.stop_words = STOP_WORDS_EN
 
     def custom_tokenizer(self, document):
+        from fog.tokenizers.words import WordTokenizer
         tokenizer = WordTokenizer(
             keep=['word', 'mention'],
             lower=True,
