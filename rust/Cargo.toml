@@ -1,0 +1,15 @@
+[package]
+name = "twembeddings"
+version = "0.1.0"
+authors = [
+  "bmaz <beatrice.mazoyer@sciencespo.fr",
+  "Yomguithereal <guillaume.plique@sciencespo.fr>"
+]
+edition = "2018"
+
+[dependencies]
+csv = "1.1"
+indicatif = "0.16.2"
+rayon = "1.5"
+serde = { version = "1", features = ["derive"] }
+sparseset = "1.0.0"
