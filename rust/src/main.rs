@@ -1,12 +1,17 @@
+#[macro_use]
+extern crate lazy_static;
+
 use std::collections::VecDeque;
 use std::error::Error;
 use std::process;
 
-use clap::{Clap};
+use clap::Clap;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 use serde::Deserialize;
 use sparseset::SparseSet;
+
+pub mod tokenization;
 
 #[derive(Debug, Deserialize)]
 struct CSVRecord {
@@ -58,19 +63,18 @@ fn clustering(path: String, total: Option<u64>) -> Result<(), Box<dyn Error>> {
         Some(total_count) => {
             let bar = ProgressBar::new(total_count);
 
-            bar.set_style(
-                ProgressStyle::default_bar()
-                    .template("[{elapsed_precise}] < [{eta_precise}] {per_sec} {bar:70} {pos:>7}/{len:7}"),
-            );
+            bar.set_style(ProgressStyle::default_bar().template(
+                "[{elapsed_precise}] < [{eta_precise}] {per_sec} {bar:70} {pos:>7}/{len:7}",
+            ));
 
             bar
-        },
+        }
         None => {
             let bar = ProgressBar::new_spinner();
 
             bar.set_style(
                 ProgressStyle::default_spinner()
-                    .template("{spinner} [{elapsed_precise}] {per_sec} {pos}")
+                    .template("{spinner} [{elapsed_precise}] {per_sec} {pos}"),
             );
 
             bar
