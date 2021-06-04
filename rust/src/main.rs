@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 use std::error::Error;
 use std::process;
 
-use clap::{AppSettings, Clap};
+use clap::{Clap};
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 use serde::Deserialize;
@@ -21,7 +21,6 @@ const LIMIT: usize = usize::MAX;
 
 const THRESHOLD: f64 = 0.69;
 const WINDOW: usize = 1_500_000;
-const TICK: usize = 1_000;
 const QUERY_SIZE: u8 = 5;
 const VOC_SIZE: usize = 300_000;
 
@@ -50,17 +49,35 @@ fn sparse_dot_product_distance(helper: &SparseSet<f64>, other: &[(usize, f64)]) 
 // TODO: start from window directly to easy test
 // TODO: use #[cfg] for stats within the function
 // TODO: https://dash.harvard.edu/bitstream/handle/1/38811431/GHOCHE-SENIORTHESIS-2016.pdf?sequence=3
-fn clustering(path: String) -> Result<(), Box<dyn Error>> {
+fn clustering(path: String, total: Option<u64>) -> Result<(), Box<dyn Error>> {
     let mut rdr = csv::Reader::from_path(path)?;
     let mut i = 0;
     let mut dropped_so_far = 0;
 
-    let bar = ProgressBar::new(7_000_000);
+    let bar = match total {
+        Some(total_count) => {
+            let bar = ProgressBar::new(total_count);
 
-    bar.set_style(
-        ProgressStyle::default_bar()
-            .template("[{elapsed_precise}] < [{eta_precise}] {bar:70} {pos:>7}/{len:7}"),
-    );
+            bar.set_style(
+                ProgressStyle::default_bar()
+                    .template("[{elapsed_precise}] < [{eta_precise}] {per_sec} {bar:70} {pos:>7}/{len:7}"),
+            );
+
+            bar
+        },
+        None => {
+            let bar = ProgressBar::new_spinner();
+
+            bar.set_style(
+                ProgressStyle::default_spinner()
+                    .template("{spinner} [{elapsed_precise}] {per_sec} {pos}")
+            );
+
+            bar
+        }
+    };
+
+    bar.set_draw_delta(1);
 
     let mut cosine_helper_set: SparseSet<f64> = SparseSet::with_capacity(VOC_SIZE);
     let mut inverted_index: Vec<VecDeque<usize>> = Vec::with_capacity(VOC_SIZE);
@@ -77,9 +94,7 @@ fn clustering(path: String) -> Result<(), Box<dyn Error>> {
             break;
         }
 
-        if i % TICK == 0 {
-            bar.inc(TICK as u64);
-        }
+        bar.inc(1);
 
         let record: CSVRecord = result?;
 
@@ -165,7 +180,7 @@ fn clustering(path: String) -> Result<(), Box<dyn Error>> {
         i += 1;
     }
 
-    bar.finish();
+    bar.finish_at_current_pos();
 
     // println!("{:?}", nearest_neighbors.len());
 
@@ -187,15 +202,16 @@ fn clustering(path: String) -> Result<(), Box<dyn Error>> {
 
 #[derive(Clap)]
 #[clap(version = "1.0")]
-#[clap(setting = AppSettings::ColoredHelp)]
 struct CLIOptions {
     input: String,
+    #[clap(long)]
+    total: Option<u64>,
 }
 
 fn main() {
     let cli_args: CLIOptions = CLIOptions::parse();
 
-    if let Err(err) = clustering(cli_args.input) {
+    if let Err(err) = clustering(cli_args.input, cli_args.total) {
         println!("error running clustering: {}", err);
         process::exit(1);
     }
