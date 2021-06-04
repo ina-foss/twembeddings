@@ -21,6 +21,9 @@ parser.add_argument(
 
 cli_args = parser.parse_args()
 
+def print_err(*args):
+    print(*args, file=sys.stderr)
+
 def prepare_stoplist():
     stoplist = set()
 
@@ -67,11 +70,11 @@ with open(cli_args.tweets) as f:
             DOCUMENTS.append(tokens)
 
 loading_bar.close()
-print('Size of vocabulary:', len(DOCUMENT_FREQUENCIES))
+print_err('Size of vocabulary:', len(DOCUMENT_FREQUENCIES))
 
-print('Most frequent tokens:')
+print_err('Most frequent tokens:')
 for token, count in DOCUMENT_FREQUENCIES.most_common(50):
-    print('  -', token, count, count / len(DOCUMENTS))
+    print_err('  -', token, count, count / len(DOCUMENTS))
 
 N = len(DOCUMENTS)
 ID = 0
@@ -84,7 +87,7 @@ for token, df in DOCUMENT_FREQUENCIES.items():
         ID += 1
         INVERSE_DOCUMENT_FREQUENCIES[token] = 1 + math.log((N + 1) / (df + 1))
 
-print('Size of vocabulary after df trimming:', len(INVERSE_DOCUMENT_FREQUENCIES))
+print_err('Size of vocabulary after df trimming:', len(INVERSE_DOCUMENT_FREQUENCIES))
 
 writer = csv.writer(DummyTqdmFile(sys.stdout))
 writer.writerow(['dimensions', 'weights'])

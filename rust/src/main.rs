@@ -2,6 +2,7 @@ use std::collections::VecDeque;
 use std::error::Error;
 use std::process;
 
+use clap::{AppSettings, Clap};
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 use serde::Deserialize;
@@ -49,8 +50,8 @@ fn sparse_dot_product_distance(helper: &SparseSet<f64>, other: &[(usize, f64)]) 
 // TODO: start from window directly to easy test
 // TODO: use #[cfg] for stats within the function
 // TODO: https://dash.harvard.edu/bitstream/handle/1/38811431/GHOCHE-SENIORTHESIS-2016.pdf?sequence=3
-fn clustering() -> Result<(), Box<dyn Error>> {
-    let mut rdr = csv::Reader::from_path("../data/vectors.csv")?;
+fn clustering(path: String) -> Result<(), Box<dyn Error>> {
+    let mut rdr = csv::Reader::from_path(path)?;
     let mut i = 0;
     let mut dropped_so_far = 0;
 
@@ -184,8 +185,17 @@ fn clustering() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+#[derive(Clap)]
+#[clap(version = "1.0")]
+#[clap(setting = AppSettings::ColoredHelp)]
+struct CLIOptions {
+    input: String,
+}
+
 fn main() {
-    if let Err(err) = clustering() {
+    let cli_args: CLIOptions = CLIOptions::parse();
+
+    if let Err(err) = clustering(cli_args.input) {
         println!("error running clustering: {}", err);
         process::exit(1);
     }
