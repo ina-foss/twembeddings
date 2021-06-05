@@ -192,26 +192,34 @@ impl Iterator for Tokens {
 
     fn next(&mut self) -> Option<String> {
         loop {
-            if let Some(part) = self.hashtag_split.pop_front() {
-                return Some(self.post_process(&part));
+            let token: Option<String>;
+
+            if let Some(value) = self.hashtag_split.pop_front() {
+                token = Some(value);
             } else {
                 match WORD_RE.find_at(&self.text, self.offset) {
                     Some(m) => {
                         self.offset = m.end();
 
-                        let token = m.as_str().to_string();
+                        let value = m.as_str().to_string();
 
-                        if is_hashtag(&token) {
+                        if is_hashtag(&value) {
                             let split: VecDeque<String> =
-                                split_hashtag(&token).map(|word| word.to_string()).collect();
+                                split_hashtag(&value).map(|word| word.to_string()).collect();
                             self.hashtag_split = split;
                             continue;
                         }
 
-                        return Some(self.post_process(&token));
+                        token = Some(value);
                     }
                     None => return None,
                 }
+            }
+
+            if let Some(value) = token {
+                return Some(self.post_process(&value));
+            } else {
+                return None;
             }
         }
     }
