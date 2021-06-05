@@ -38,38 +38,15 @@ fn reduce_lengthening(string: &str) -> String {
     output
 }
 
-#[test]
-fn test_reduce_lengthening() {
-    assert_eq!(reduce_lengthening("cool"), "cool");
-    assert_eq!(reduce_lengthening("coool"), "coool");
-    assert_eq!(reduce_lengthening("cooooool"), "coool");
-    assert_eq!(reduce_lengthening("cooooooooooolool"), "cooolool");
-}
-
 fn strip_urls(string: &str) -> Cow<str> {
     URL_RE.replace_all(string, "")
-}
-
-#[test]
-fn test_strip_urls() {
-    assert_eq!(
-        strip_urls("This is a url: http://lemonde.fr no?"),
-        "This is a url:  no?"
-    )
 }
 
 fn strip_mentions(string: &str) -> Cow<str> {
     MENTION_RE.replace_all(string, "")
 }
 
-#[test]
-fn test_strip_mentions() {
-    assert_eq!(
-        strip_mentions("This is a mention: @Yomgui no?"),
-        "This is a mention:  no?"
-    )
-}
-
+/// Enum representing the hashtag splitter state
 enum HashtagSplitterState {
     UpperStart,
     UpperNext,
@@ -150,6 +127,49 @@ fn split_hashtag(hashtag: &str) -> Vec<&str> {
     parts
 }
 
+fn tokenize(string: &str) -> Vec<String> {
+    let string = strip_urls(string);
+    let string = strip_mentions(&string);
+    let string = unidecode(&string);
+
+    WORD_RE
+        .find_iter(&string)
+        .map(|word| word.as_str())
+        .flat_map(|word| {
+            if word.len() > 2 && word.starts_with('#') {
+                split_hashtag(word).iter().map(|x| x.to_string()).collect()
+            } else {
+                vec![word.to_string()]
+            }
+        })
+        .map(|word| reduce_lengthening(&word).to_lowercase())
+        .collect()
+}
+
+#[test]
+fn test_reduce_lengthening() {
+    assert_eq!(reduce_lengthening("cool"), "cool");
+    assert_eq!(reduce_lengthening("coool"), "coool");
+    assert_eq!(reduce_lengthening("cooooool"), "coool");
+    assert_eq!(reduce_lengthening("cooooooooooolool"), "cooolool");
+}
+
+#[test]
+fn test_strip_urls() {
+    assert_eq!(
+        strip_urls("This is a url: http://lemonde.fr no?"),
+        "This is a url:  no?"
+    )
+}
+
+#[test]
+fn test_strip_mentions() {
+    assert_eq!(
+        strip_mentions("This is a mention: @Yomgui no?"),
+        "This is a mention:  no?"
+    )
+}
+
 #[test]
 fn split_hashtag_test() {
     assert_eq!(split_hashtag("#test"), vec!["test"]);
@@ -197,25 +217,6 @@ fn split_hashtag_test() {
         vec!["This", "123", "thing", "Overload"]
     );
     assert_eq!(split_hashtag("#final19"), vec!["final", "19"]);
-}
-
-fn tokenize(string: &str) -> Vec<String> {
-    let string = strip_urls(string);
-    let string = strip_mentions(&string);
-    let string = unidecode(&string);
-
-    WORD_RE
-        .find_iter(&string)
-        .map(|word| word.as_str())
-        .flat_map(|word| {
-            if word.len() > 2 && word.starts_with('#') {
-                split_hashtag(word).iter().map(|x| x.to_string()).collect()
-            } else {
-                vec![word.to_string()]
-            }
-        })
-        .map(|word| reduce_lengthening(&word).to_lowercase())
-        .collect()
 }
 
 #[test]
