@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::collections::HashSet;
+use std::str::CharIndices;
 
 use regex::Regex;
 use unidecode::unidecode;
@@ -57,75 +58,105 @@ enum HashtagSplitterState {
 
 use HashtagSplitterState::*;
 
-fn split_hashtag(hashtag: &str) -> Vec<&str> {
-    let mut offset = 1;
-    let mut state = UpperStart;
-    let mut chars = hashtag.char_indices();
+struct HashtagSplit<'a> {
+    text: &'a str,
+    offset: usize,
+    state: HashtagSplitterState,
+    chars: CharIndices<'a>,
+    done: bool,
+}
 
-    let mut parts: Vec<&str> = Vec::new();
+impl<'a> HashtagSplit<'a> {
+    pub fn new(hashtag: &str) -> HashtagSplit {
+        let mut chars = hashtag.char_indices();
 
-    chars.next().unwrap();
-    chars.next().unwrap();
+        // Consuming the hashtag `#` and first char
+        chars.next().unwrap();
+        chars.next().unwrap();
 
-    for (i, c) in chars {
-        state = match state {
-            Lower => {
-                if c.is_uppercase() {
-                    parts.push(&hashtag[offset..i]);
-                    offset = i;
-                    UpperStart
-                } else if c.is_numeric() {
-                    parts.push(&hashtag[offset..i]);
-                    offset = i;
-                    Number
-                } else {
-                    Lower
-                }
-            }
-            UpperStart => {
-                if c.is_lowercase() {
-                    Lower
-                } else if c.is_numeric() {
-                    parts.push(&hashtag[offset..i]);
-                    offset = i;
-                    Number
-                } else {
-                    UpperNext
-                }
-            }
-            UpperNext => {
-                if c.is_lowercase() {
-                    parts.push(&hashtag[offset..i - 1]);
-                    offset = i - 1;
-                    Lower
-                } else if c.is_numeric() {
-                    parts.push(&hashtag[offset..i]);
-                    offset = i;
-                    Number
-                } else {
-                    UpperNext
-                }
-            }
-            Number => {
-                if !c.is_numeric() {
-                    parts.push(&hashtag[offset..i]);
-                    offset = i;
-
-                    if c.is_uppercase() {
-                        UpperStart
-                    } else {
-                        Lower
-                    }
-                } else {
-                    Number
-                }
-            }
-        };
+        HashtagSplit {
+            text: hashtag,
+            offset: 1,
+            state: UpperStart,
+            chars: chars,
+            done: false,
+        }
     }
+}
 
-    parts.push(&hashtag[offset..]);
+impl<'a> Iterator for HashtagSplit<'a> {
+    type Item = &'a str;
 
-    parts
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+
+        let text = self.text;
+
+        loop {
+            match self.chars.next() {
+                Some((i, c)) => {
+                    let result = match self.state {
+                        Lower => {
+                            if c.is_uppercase() {
+                                (Some(0), UpperStart)
+                            } else if c.is_numeric() {
+                                (Some(0), Number)
+                            } else {
+                                (None, Lower)
+                            }
+                        }
+                        UpperStart => {
+                            if c.is_lowercase() {
+                                (None, Lower)
+                            } else if c.is_numeric() {
+                                (Some(0), Number)
+                            } else {
+                                (None, UpperNext)
+                            }
+                        }
+                        UpperNext => {
+                            if c.is_lowercase() {
+                                (Some(1), Lower)
+                            } else if c.is_numeric() {
+                                (Some(0), Number)
+                            } else {
+                                (None, UpperNext)
+                            }
+                        }
+                        Number => {
+                            if !c.is_numeric() {
+                                if c.is_uppercase() {
+                                    (Some(0), UpperStart)
+                                } else {
+                                    (Some(0), Lower)
+                                }
+                            } else {
+                                (None, Number)
+                            }
+                        }
+                    };
+
+                    self.state = result.1;
+
+                    if let Some(delta) = result.0 {
+                        let current_offset = self.offset;
+                        self.offset = i - delta;
+                        return Some(&text[current_offset..i - delta]);
+                    }
+                }
+                None => {
+                    self.done = true;
+                    return Some(&text[self.offset..]);
+                }
+            }
+        }
+    }
+}
+
+fn split_hashtag(hashtag: &str) -> HashtagSplit {
+    HashtagSplit::new(hashtag)
 }
 
 pub struct Tokenizer {
@@ -160,7 +191,7 @@ impl Tokenizer {
             .map(|word| word.as_str())
             .flat_map(|word| {
                 if word.len() > 2 && word.starts_with('#') {
-                    split_hashtag(word).iter().map(|x| x.to_string()).collect()
+                    split_hashtag(word).map(|x| x.to_string()).collect()
                 } else {
                     vec![word.to_string()]
                 }
@@ -197,51 +228,73 @@ fn test_strip_mentions() {
 
 #[test]
 fn split_hashtag_test() {
-    assert_eq!(split_hashtag("#test"), vec!["test"]);
-    assert_eq!(split_hashtag("#Test"), vec!["Test"]);
-    assert_eq!(split_hashtag("#t"), vec!["t"]);
-    assert_eq!(split_hashtag("#T"), vec!["T"]);
-    assert_eq!(split_hashtag("#TestWhatever"), vec!["Test", "Whatever"]);
-    assert_eq!(split_hashtag("#testWhatever"), vec!["test", "Whatever"]);
-    assert_eq!(split_hashtag("#ÉpopéeRusse"), vec!["Épopée", "Russe"]);
-    assert_eq!(split_hashtag("#TestOkFinal"), vec!["Test", "Ok", "Final"]);
+    fn collect_split_hashtag(text: &str) -> Vec<&str> {
+        split_hashtag(text).collect()
+    }
+
+    assert_eq!(collect_split_hashtag("#test"), vec!["test"]);
+    assert_eq!(collect_split_hashtag("#Test"), vec!["Test"]);
+    assert_eq!(collect_split_hashtag("#t"), vec!["t"]);
+    assert_eq!(collect_split_hashtag("#T"), vec!["T"]);
     assert_eq!(
-        split_hashtag("#TestOkFinalT"),
+        collect_split_hashtag("#TestWhatever"),
+        vec!["Test", "Whatever"]
+    );
+    assert_eq!(
+        collect_split_hashtag("#testWhatever"),
+        vec!["test", "Whatever"]
+    );
+    assert_eq!(
+        collect_split_hashtag("#ÉpopéeRusse"),
+        vec!["Épopée", "Russe"]
+    );
+    assert_eq!(
+        collect_split_hashtag("#TestOkFinal"),
+        vec!["Test", "Ok", "Final"]
+    );
+    assert_eq!(
+        collect_split_hashtag("#TestOkFinalT"),
         vec!["Test", "Ok", "Final", "T"]
     );
     assert_eq!(
-        split_hashtag("#Test123Whatever"),
+        collect_split_hashtag("#Test123Whatever"),
         vec!["Test", "123", "Whatever"]
     );
-    assert_eq!(split_hashtag("#TDF2018"), vec!["TDF", "2018"]);
-    assert_eq!(split_hashtag("#T2018"), vec!["T", "2018"]);
-    assert_eq!(split_hashtag("#TheID2018"), vec!["The", "ID", "2018"]);
+    assert_eq!(collect_split_hashtag("#TDF2018"), vec!["TDF", "2018"]);
+    assert_eq!(collect_split_hashtag("#T2018"), vec!["T", "2018"]);
     assert_eq!(
-        split_hashtag("#8YearsOfOneDirection"),
+        collect_split_hashtag("#TheID2018"),
+        vec!["The", "ID", "2018"]
+    );
+    assert_eq!(
+        collect_split_hashtag("#8YearsOfOneDirection"),
         vec!["8", "Years", "Of", "One", "Direction"]
     );
-    assert_eq!(split_hashtag("#This18Gloss"), vec!["This", "18", "Gloss"]);
     assert_eq!(
-        split_hashtag("#WordpressIDInformation"),
+        collect_split_hashtag("#This18Gloss"),
+        vec!["This", "18", "Gloss"]
+    );
+    assert_eq!(
+        collect_split_hashtag("#WordpressIDInformation"),
         vec!["Wordpress", "ID", "Information"]
     );
     assert_eq!(
-        split_hashtag("#LearnWCFInSixEasyMonths"),
+        collect_split_hashtag("#LearnWCFInSixEasyMonths"),
         vec!["Learn", "WCF", "In", "Six", "Easy", "Months"]
     );
     assert_eq!(
-        split_hashtag("#ThisIsInPascalCase"),
+        collect_split_hashtag("#ThisIsInPascalCase"),
         vec!["This", "Is", "In", "Pascal", "Case"]
     );
     assert_eq!(
-        split_hashtag("#whatAboutThis"),
+        collect_split_hashtag("#whatAboutThis"),
         vec!["what", "About", "This"]
     );
     assert_eq!(
-        split_hashtag("#This123thingOverload"),
+        collect_split_hashtag("#This123thingOverload"),
         vec!["This", "123", "thing", "Overload"]
     );
-    assert_eq!(split_hashtag("#final19"), vec!["final", "19"]);
+    assert_eq!(collect_split_hashtag("#final19"), vec!["final", "19"]);
 }
 
 #[test]
