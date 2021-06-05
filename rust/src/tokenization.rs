@@ -1,7 +1,9 @@
 use std::borrow::Cow;
 use std::collections::HashSet;
+use std::iter::once;
 use std::str::CharIndices;
 
+use either::Either;
 use regex::Regex;
 use unidecode::unidecode;
 
@@ -191,12 +193,12 @@ impl Tokenizer {
             .map(|word| word.as_str())
             .flat_map(|word| {
                 if word.len() > 2 && word.starts_with('#') {
-                    split_hashtag(word).map(|x| x.to_string()).collect()
+                    Either::Left(split_hashtag(word))
                 } else {
-                    vec![word.to_string()]
+                    Either::Right(once(word))
                 }
             })
-            .map(|word| reduce_lengthening(&word).to_lowercase())
+            .map(|word| reduce_lengthening(word).to_lowercase())
             .filter(|word| !self.stoplist.contains(word))
             .collect()
     }

@@ -10,6 +10,7 @@ edition = "2018"
 [dependencies]
 clap = "3.0.0-beta.2"
 csv = "1.1"
+either = "1.6.1"
 indicatif = "0.16.2"
 lazy_static = "1.4.0"
 rayon = "1.5"
