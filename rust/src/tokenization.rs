@@ -128,8 +128,6 @@ fn split_hashtag(hashtag: &str) -> Vec<&str> {
     parts
 }
 
-pub struct Tokens {}
-
 pub struct Tokenizer {
     stoplist: HashSet<String>,
 }
