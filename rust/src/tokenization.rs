@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::collections::HashSet;
 
 use regex::Regex;
 use unidecode::unidecode;
@@ -127,23 +128,49 @@ fn split_hashtag(hashtag: &str) -> Vec<&str> {
     parts
 }
 
-fn tokenize(string: &str) -> Vec<String> {
-    let string = strip_urls(string);
-    let string = strip_mentions(&string);
-    let string = unidecode(&string);
+pub struct Tokens {}
 
-    WORD_RE
-        .find_iter(&string)
-        .map(|word| word.as_str())
-        .flat_map(|word| {
-            if word.len() > 2 && word.starts_with('#') {
-                split_hashtag(word).iter().map(|x| x.to_string()).collect()
-            } else {
-                vec![word.to_string()]
-            }
-        })
-        .map(|word| reduce_lengthening(&word).to_lowercase())
-        .collect()
+pub struct Tokenizer {
+    stoplist: HashSet<String>,
+}
+
+impl Default for Tokenizer {
+    fn default() -> Tokenizer {
+        Tokenizer {
+            stoplist: HashSet::new(),
+        }
+    }
+}
+
+impl Tokenizer {
+    pub fn new() -> Tokenizer {
+        Tokenizer::default()
+    }
+
+    pub fn add_stop_word(&mut self, word: &str) -> &mut Tokenizer {
+        self.stoplist.insert(word.to_string());
+        self
+    }
+
+    pub fn tokenize(&self, text: &str) -> Vec<String> {
+        let text = strip_urls(text);
+        let text = strip_mentions(&text);
+        let text = unidecode(&text);
+
+        WORD_RE
+            .find_iter(&text)
+            .map(|word| word.as_str())
+            .flat_map(|word| {
+                if word.len() > 2 && word.starts_with('#') {
+                    split_hashtag(word).iter().map(|x| x.to_string()).collect()
+                } else {
+                    vec![word.to_string()]
+                }
+            })
+            .map(|word| reduce_lengthening(&word).to_lowercase())
+            .filter(|word| !self.stoplist.contains(word))
+            .collect()
+    }
 }
 
 #[test]
@@ -221,13 +248,23 @@ fn split_hashtag_test() {
 
 #[test]
 fn test_tokenize() {
+    let default_tokenizer = Tokenizer::new();
+
     assert_eq!(
-        tokenize("Hello World, this is I the élémental @Yomgui http://lemonde.fr type looooool! #Whatever"),
+        default_tokenizer.tokenize("Hello World, this is I the élémental @Yomgui http://lemonde.fr type looooool! #Whatever"),
         vec!["hello", "world", "this", "is", "the", "elemental", "type", "loool", "whatever"]
     );
 
     assert_eq!(
-        tokenize("Hello #EpopeeRusse! What's brewing?"),
+        default_tokenizer.tokenize("Hello #EpopeeRusse! What's brewing?"),
         vec!["hello", "epopee", "russe", "what", "brewing"]
-    )
+    );
+
+    let mut tokenizer_with_stopwords = Tokenizer::new();
+    tokenizer_with_stopwords.add_stop_word("world");
+
+    assert_eq!(
+        tokenizer_with_stopwords.tokenize("Hello World!"),
+        vec!["hello"]
+    );
 }
