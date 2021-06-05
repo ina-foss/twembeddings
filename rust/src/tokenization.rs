@@ -163,14 +163,15 @@ fn split_hashtag(hashtag: &str) -> HashtagSplit {
     HashtagSplit::new(hashtag)
 }
 
-pub struct Tokens {
+pub struct Tokens<'a> {
     text: String,
     offset: usize,
     hashtag_split: VecDeque<String>,
+    tokenizer: &'a Tokenizer,
 }
 
-impl Tokens {
-    pub fn new(text: &str) -> Tokens {
+impl<'a> Tokens<'a> {
+    pub fn new(text: &str, tokenizer: &'a Tokenizer) -> Tokens<'a> {
         let text = strip_urls(text);
         let text = strip_mentions(&text);
         let text = unidecode(&text);
@@ -179,48 +180,53 @@ impl Tokens {
             text: text,
             offset: 0,
             hashtag_split: VecDeque::new(),
+            tokenizer: tokenizer,
         }
     }
 
     fn post_process(&self, token: &str) -> String {
         reduce_lengthening(&token).to_lowercase()
     }
+
+    fn must_skip_token(&self, token: &str) -> bool {
+        self.tokenizer.stoplist.contains(token)
+    }
 }
 
-impl Iterator for Tokens {
+impl<'a> Iterator for Tokens<'a> {
     type Item = String;
 
     fn next(&mut self) -> Option<String> {
         loop {
-            let token: Option<String>;
-
-            if let Some(value) = self.hashtag_split.pop_front() {
-                token = Some(value);
+            let token = if let Some(value) = self.hashtag_split.pop_front() {
+                value
             } else {
                 match WORD_RE.find_at(&self.text, self.offset) {
                     Some(m) => {
                         self.offset = m.end();
 
-                        let value = m.as_str().to_string();
+                        let value = m.as_str();
 
-                        if is_hashtag(&value) {
-                            let split: VecDeque<String> =
-                                split_hashtag(&value).map(|word| word.to_string()).collect();
-                            self.hashtag_split = split;
+                        if is_hashtag(value) {
+                            for word in split_hashtag(value) {
+                                self.hashtag_split.push_back(word.to_string());
+                            }
                             continue;
                         }
 
-                        token = Some(value);
+                        value.to_string()
                     }
                     None => return None,
                 }
+            };
+
+            let token = self.post_process(&token);
+
+            if self.must_skip_token(&token) {
+                continue;
             }
 
-            if let Some(value) = token {
-                return Some(self.post_process(&value));
-            } else {
-                return None;
-            }
+            return Some(token);
         }
     }
 }
@@ -248,7 +254,7 @@ impl Tokenizer {
     }
 
     pub fn tokenize(&self, text: &str) -> Tokens {
-        Tokens::new(text)
+        Tokens::new(text, self)
     }
 }
 
@@ -363,11 +369,13 @@ fn test_tokenize() {
         vec!["hello", "epopee", "russe", "what", "brewing"]
     );
 
-    // let mut tokenizer_with_stopwords = Tokenizer::new();
-    // tokenizer_with_stopwords.add_stop_word("world");
+    let mut tokenizer_with_stopwords = Tokenizer::new();
+    tokenizer_with_stopwords.add_stop_word("world");
 
-    // assert_eq!(
-    //     tokenizer_with_stopwords.tokenize("Hello World!"),
-    //     vec!["hello"]
-    // );
+    assert_eq!(
+        tokenizer_with_stopwords
+            .tokenize("Hello World!")
+            .collect::<Vec<String>>(),
+        vec!["hello"]
+    );
 }
