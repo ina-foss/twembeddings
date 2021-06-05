@@ -50,10 +50,11 @@ fn tokenize(cli_args: &TokenizeOpts) -> Result<(), Box<dyn Error>> {
     let column_index = headers.iter().position(|v| v == cli_args.column);
 
     if column_index.is_none() {
-        Err(format!(
+        return Err(format!(
             "Column \"{}\" does not exist in given CSV file!",
             cli_args.column
-        ))?
+        )
+        .into());
     }
 
     let column_index = column_index.unwrap();

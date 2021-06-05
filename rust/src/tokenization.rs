@@ -82,7 +82,7 @@ impl<'a> HashtagSplit<'a> {
             text: hashtag,
             offset: 1,
             state: UpperStart,
-            chars: chars,
+            chars,
             done: false,
         }
     }
@@ -177,10 +177,10 @@ impl<'a> Tokens<'a> {
         let text = unidecode(&text);
 
         Tokens {
-            text: text,
+            text,
             offset: 0,
             hashtag_split: VecDeque::new(),
-            tokenizer: tokenizer,
+            tokenizer,
         }
     }
 
