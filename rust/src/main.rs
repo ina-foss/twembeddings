@@ -11,7 +11,7 @@ use rayon::prelude::*;
 pub mod cli_utils;
 pub mod tokenization;
 
-use cli_utils::acquire_progress_indicator;
+use cli_utils::{acquire_progress_indicator, ReorderedWriter};
 use tokenization::Tokenizer;
 
 #[derive(Clap, Debug)]
@@ -62,7 +62,8 @@ fn tokenize(cli_args: &TokenizeOpts) -> Result<(), Box<dyn Error>> {
     let column_index = column_index.unwrap();
 
     let tokenizer = Tokenizer::new();
-    let mutex = Mutex::new(wtr);
+    let reordered_writer = ReorderedWriter::new(&mut wtr);
+    let mutex = Mutex::new(reordered_writer);
 
     rdr.records()
         .enumerate()
@@ -86,12 +87,7 @@ fn tokenize(cli_args: &TokenizeOpts) -> Result<(), Box<dyn Error>> {
 
             let mut locked_wtr = mutex.lock().unwrap();
 
-            locked_wtr
-                .write_record(&csv::StringRecord::from(vec![
-                    i.to_string(),
-                    tokens.join("|"),
-                ]))
-                .expect("Could not write output row!");
+            locked_wtr.write_vec(i, vec![i.to_string(), tokens.join("|")]);
         });
 
     bar.finish_at_current_pos();
