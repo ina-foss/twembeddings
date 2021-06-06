@@ -3,8 +3,10 @@ extern crate lazy_static;
 
 use std::boxed::Box;
 use std::error::Error;
+use std::sync::Mutex;
 
 use clap::Clap;
+use rayon::prelude::*;
 
 pub mod cli_utils;
 pub mod tokenization;
@@ -41,7 +43,7 @@ fn tokenize(cli_args: &TokenizeOpts) -> Result<(), Box<dyn Error>> {
         .from_path(&cli_args.input)?;
 
     let mut wtr = csv::Writer::from_writer(std::io::stdout());
-    wtr.write_record(&csv::StringRecord::from(vec!["tokens"]))?;
+    wtr.write_record(&csv::StringRecord::from(vec!["index", "tokens"]))?;
 
     let bar = acquire_progress_indicator(cli_args.total);
 
@@ -60,17 +62,37 @@ fn tokenize(cli_args: &TokenizeOpts) -> Result<(), Box<dyn Error>> {
     let column_index = column_index.unwrap();
 
     let tokenizer = Tokenizer::new();
+    let mutex = Mutex::new(wtr);
 
-    for result in rdr.records() {
-        bar.inc(1);
+    rdr.records()
+        .enumerate()
+        .par_bridge()
+        .map(|(i, result)| {
+            let record = result.expect("Could not read row!");
 
-        let record = result?;
-        let text = record.get(column_index).unwrap();
+            (
+                i,
+                tokenizer
+                    .tokenize(
+                        &record
+                            .get(column_index)
+                            .expect("Found a row with fewer columns than expected!"),
+                    )
+                    .collect::<Vec<String>>(),
+            )
+        })
+        .for_each(|(i, tokens)| {
+            bar.inc(1);
 
-        let tokens: Vec<String> = tokenizer.tokenize(&text).collect();
+            let mut locked_wtr = mutex.lock().unwrap();
 
-        wtr.write_record(&csv::StringRecord::from(vec![tokens.join("|")]))?;
-    }
+            locked_wtr
+                .write_record(&csv::StringRecord::from(vec![
+                    i.to_string(),
+                    tokens.join("|"),
+                ]))
+                .expect("Could not write output row!");
+        });
 
     bar.finish_at_current_pos();
 
