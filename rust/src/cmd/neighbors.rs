@@ -33,7 +33,7 @@ pub struct Opts {
 pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let mut rdr = csv::Reader::from_path(&cli_args.voc_input)?;
 
-    // let mut wtr = csv::Writer::from_writer(std::io::stdout());
+    let mut wtr = csv::Writer::from_writer(std::io::stdout());
 
     let bar = acquire_progress_indicator("Compiling vocabulary", None);
 
@@ -73,6 +73,13 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let tokenizer = acquire_tokenizer();
     let mut clustering = ClusteringBuilder::new(vocabulary.len(), cli_args.window).build();
 
+    // TODO: learn to write a macro
+    wtr.write_record(&csv::StringRecord::from(vec![
+        "index",
+        "nearest_neighbor",
+        "distance",
+    ]))?;
+
     for (i, result) in rdr.records().enumerate() {
         bar.inc(1);
 
@@ -82,11 +89,16 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
             .get(column_index)
             .expect("Found a row with fewer columns than expected!");
 
-        let tokens = tokenizer.tokenize(&text_cell).collect::<Vec<String>>();
+        let tokens = tokenizer.unique_tokens(&text_cell);
+
         let vector = vectorize(&vocabulary, &tokens);
+
         let nearest_neighbor = clustering.nearest_neighbor(i, vector);
 
-        println!("{:?}", nearest_neighbor);
+        wtr.write_record(&csv::StringRecord::from(match nearest_neighbor {
+            Some((j, d)) => vec![i.to_string(), j.to_string(), d.to_string()],
+            None => vec![i.to_string(), "".to_string(), "0".to_string()],
+        }))?;
     }
 
     bar.finish_at_current_pos();

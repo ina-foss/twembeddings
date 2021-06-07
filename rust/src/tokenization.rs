@@ -2,6 +2,7 @@ use std::borrow::Cow;
 use std::collections::{HashSet, VecDeque};
 use std::str::CharIndices;
 
+use itertools::Itertools;
 use regex::Regex;
 use unidecode::unidecode;
 
@@ -260,6 +261,10 @@ impl Tokenizer {
     pub fn tokenize(&self, text: &str) -> Tokens {
         Tokens::new(text, self)
     }
+
+    pub fn unique_tokens(&self, text: &str) -> Vec<String> {
+        Tokens::new(text, self).unique().collect()
+    }
 }
 
 #[test]
@@ -379,6 +384,11 @@ fn test_tokenize() {
             .tokenize("Hello to this number: 400000 and this one: 34")
             .collect::<Vec<String>>(),
         vec!["hello", "to", "this", "number", "and", "this", "one", "34"]
+    );
+
+    assert_eq!(
+        default_tokenizer.unique_tokens("Hello! hello bonjour hello?"),
+        vec!["hello", "bonjour"]
     );
 
     let mut tokenizer_with_stopwords = Tokenizer::new();

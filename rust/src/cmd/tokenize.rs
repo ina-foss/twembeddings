@@ -54,13 +54,11 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
             (
                 i,
-                tokenizer
-                    .tokenize(
-                        &record
-                            .get(column_index)
-                            .expect("Found a row with fewer columns than expected!"),
-                    )
-                    .collect::<Vec<String>>(),
+                tokenizer.unique_tokens(
+                    &record
+                        .get(column_index)
+                        .expect("Found a row with fewer columns than expected!"),
+                ),
             )
         })
         .for_each(|(i, tokens)| {

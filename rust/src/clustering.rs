@@ -112,7 +112,6 @@ impl Clustering {
             .par_iter()
             .map(|&candidate| {
                 let other_vector = &self.vectors[candidate];
-
                 (
                     candidate,
                     sparse_dot_product_distance_with_helper(&self.cosine_helper_set, &other_vector),
