@@ -8,7 +8,7 @@ use crate::cosine::sparse_dot_product_distance_with_helper;
 type SparseVector = Vec<(usize, f64)>;
 
 // TODO: verify mean/median candidate set size
-// TODO: sanity tests
+// TODO: sanity tests and evaluation command
 // TODO: start from window directly to easy test
 // TODO: use #[cfg] for stats within the function
 // TODO: https://dash.harvard.edu/bitstream/handle/1/38811431/GHOCHE-SENIORTHESIS-2016.pdf?sequence=3
