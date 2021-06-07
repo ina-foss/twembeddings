@@ -7,6 +7,7 @@ pub mod cli_utils;
 pub mod cmd;
 pub mod stop_words;
 pub mod tokenization;
+pub mod vectorization;
 
 #[derive(Clap, Debug)]
 #[clap(version = "1.0")]
