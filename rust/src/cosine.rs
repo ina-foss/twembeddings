@@ -33,10 +33,9 @@ pub fn simhash_64(vector: &[(usize, f64)]) -> u64 {
     let mut histogram: Vec<f64> = vec![0.0; 64];
 
     for (dim, w) in vector {
-        let mut counter: usize = 63;
         let mut phi = *dim as u64; // TODO: need to hash the dimension?
 
-        while phi > 0 {
+        for counter in (0..64).rev() {
             // Chosing randomly to add or subtract weight to histogram
             let bit = phi % 2 == 0;
 
@@ -47,7 +46,6 @@ pub fn simhash_64(vector: &[(usize, f64)]) -> u64 {
             }
 
             phi >>= 1;
-            counter -= 1;
         }
     }
 
@@ -70,7 +68,7 @@ fn hamming_distance_64(x: u64, y: u64) -> u64 {
 }
 
 pub fn simhash_distance_64(x: u64, y: u64) -> f64 {
-    hamming_distance_64(x, y) as f64 / 64.0
+    (64 - hamming_distance_64(x, y)) as f64 / 64.0
 }
 
 // #[test]
