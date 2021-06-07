@@ -6,6 +6,7 @@ use clap::Clap;
 use serde::Deserialize;
 
 use crate::cli_utils::{acquire_progress_indicator, acquire_tokenizer};
+use crate::clustering::ClusteringBuilder;
 use crate::vectorization::vectorize;
 
 #[derive(Debug, Deserialize)]
@@ -21,6 +22,8 @@ pub struct Opts {
     voc_input: String,
     column: String,
     input: String,
+    #[clap(short, long)]
+    window: usize,
     #[clap(long)]
     total: Option<u64>,
     #[clap(long)]
@@ -68,8 +71,9 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     let column_index = column_index.unwrap();
     let tokenizer = acquire_tokenizer();
+    let mut clustering = ClusteringBuilder::new(vocabulary.len(), cli_args.window).build();
 
-    for result in rdr.records() {
+    for (i, result) in rdr.records().enumerate() {
         bar.inc(1);
 
         let record = result?;
@@ -80,6 +84,9 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
         let tokens = tokenizer.tokenize(&text_cell).collect::<Vec<String>>();
         let vector = vectorize(&vocabulary, &tokens);
+        let nearest_neighbor = clustering.nearest_neighbor(i, vector);
+
+        println!("{:?}", nearest_neighbor);
     }
 
     bar.finish_at_current_pos();

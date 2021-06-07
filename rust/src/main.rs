@@ -4,7 +4,9 @@ extern crate lazy_static;
 use clap::Clap;
 
 pub mod cli_utils;
+pub mod clustering;
 pub mod cmd;
+pub mod cosine;
 pub mod stop_words;
 pub mod tokenization;
 pub mod vectorization;

@@ -1,52 +1,18 @@
-#[macro_use]
-extern crate lazy_static;
-
 use std::collections::VecDeque;
-use std::error::Error;
-use std::process;
 
-use clap::Clap;
-use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
-use serde::Deserialize;
 use sparseset::SparseSet;
 
-pub mod tokenization;
-
-#[derive(Debug, Deserialize)]
-struct CSVRecord {
-    dimensions: String,
-    weights: String,
-}
+use crate::cosine::sparse_dot_product_distance_with_helper;
 
 type SparseVector = Vec<(usize, f64)>;
-
 // const LIMIT: usize = 10_000;
-const LIMIT: usize = usize::MAX;
+// const LIMIT: usize = usize::MAX;
 
-const THRESHOLD: f64 = 0.69;
-const WINDOW: usize = 1_500_000;
-const QUERY_SIZE: u8 = 5;
-const VOC_SIZE: usize = 300_000;
-
-#[inline]
-fn sparse_dot_product_distance(helper: &SparseSet<f64>, other: &[(usize, f64)]) -> f64 {
-    let mut product = 0.0;
-
-    for (dim, w2) in other {
-        let w1 = helper.get(*dim).unwrap_or(&0.0);
-        product += w1 * w2;
-    }
-
-    product = 1.0 - product;
-
-    // Precision error
-    if product < 0.0 {
-        return 0.0;
-    }
-
-    product
-}
+// const THRESHOLD: f64 = 0.69;
+// const WINDOW: usize = 1_500_000;
+// const QUERY_SIZE: u8 = 5;
+// const VOC_SIZE: usize = 300_000;
 
 // TODO: verify mean/median candidate set size
 // TODO: use a max clamp for normalize and for distance
@@ -54,169 +20,122 @@ fn sparse_dot_product_distance(helper: &SparseSet<f64>, other: &[(usize, f64)]) 
 // TODO: start from window directly to easy test
 // TODO: use #[cfg] for stats within the function
 // TODO: https://dash.harvard.edu/bitstream/handle/1/38811431/GHOCHE-SENIORTHESIS-2016.pdf?sequence=3
-fn clustering(path: String, total: Option<u64>) -> Result<(), Box<dyn Error>> {
-    let mut rdr = csv::Reader::from_path(path)?;
-    let mut i = 0;
-    let mut dropped_so_far = 0;
+pub struct ClusteringBuilder {
+    voc_size: usize,
+    threshold: f64,
+    window: usize,
+    query_size: u8,
+}
 
-    let bar = match total {
-        Some(total_count) => {
-            let bar = ProgressBar::new(total_count);
+pub struct Clustering {
+    threshold: f64,
+    window: usize,
+    query_size: u8,
+    dropped_so_far: usize,
+    cosine_helper_set: SparseSet<f64>,
+    inverted_index: Vec<VecDeque<usize>>,
+    vectors: VecDeque<SparseVector>,
+    candidates: SparseSet<bool>,
+}
 
-            bar.set_style(ProgressStyle::default_bar().template(
-                "[{elapsed_precise}] < [{eta_precise}] {per_sec} {bar:70} {pos:>7}/{len:7}",
-            ));
-
-            bar
+impl ClusteringBuilder {
+    pub fn new(voc_size: usize, window: usize) -> ClusteringBuilder {
+        ClusteringBuilder {
+            voc_size,
+            threshold: 0.7,
+            window,
+            query_size: 5,
         }
-        None => {
-            let bar = ProgressBar::new_spinner();
-
-            bar.set_style(
-                ProgressStyle::default_spinner()
-                    .template("{spinner} [{elapsed_precise}] {per_sec} {pos}"),
-            );
-
-            bar
-        }
-    };
-
-    bar.set_draw_delta(1);
-
-    let mut cosine_helper_set: SparseSet<f64> = SparseSet::with_capacity(VOC_SIZE);
-    let mut inverted_index: Vec<VecDeque<usize>> = Vec::with_capacity(VOC_SIZE);
-    let mut vectors: VecDeque<SparseVector> = VecDeque::new();
-    let mut nearest_neighbors: Vec<(usize, f64)> = Vec::new();
-    let mut candidates: SparseSet<bool> = SparseSet::with_capacity(WINDOW);
-
-    for _ in 0..VOC_SIZE {
-        inverted_index.push(VecDeque::new());
     }
 
-    for result in rdr.deserialize() {
-        if i >= LIMIT {
-            break;
+    pub fn with_threshold(&mut self, threshold: f64) -> &mut ClusteringBuilder {
+        self.threshold = threshold;
+        self
+    }
+
+    pub fn with_query_size(&mut self, query_size: u8) -> &mut ClusteringBuilder {
+        self.query_size = query_size;
+        self
+    }
+
+    pub fn build(self) -> Clustering {
+        let mut inverted_index: Vec<VecDeque<usize>> = Vec::with_capacity(self.voc_size);
+
+        for _ in 0..self.voc_size {
+            inverted_index.push(VecDeque::new());
         }
 
-        bar.inc(1);
+        Clustering {
+            threshold: self.threshold,
+            window: self.window,
+            query_size: self.query_size,
+            dropped_so_far: 0,
+            cosine_helper_set: SparseSet::with_capacity(self.voc_size),
+            inverted_index,
+            vectors: VecDeque::with_capacity(self.window),
+            candidates: SparseSet::with_capacity(self.window),
+        }
+    }
+}
 
-        let record: CSVRecord = result?;
+impl Clustering {
+    pub fn nearest_neighbor(&mut self, index: usize, vector: SparseVector) -> Option<(usize, f64)> {
+        self.cosine_helper_set.clear();
+        self.candidates.clear();
 
-        // println!("{:?}", record);
+        // Indexing and gathering candidates
+        let mut dim_tested: u8 = 0;
 
-        let mut sparse_vector: SparseVector = Vec::new();
-        let mut best: Option<(usize, f64)> = None;
+        for (dim, w) in vector.iter() {
+            self.cosine_helper_set.insert(*dim, *w);
 
-        if !record.dimensions.is_empty() {
-            cosine_helper_set.clear();
-            candidates.clear();
+            let deque = &mut self.inverted_index[*dim];
 
-            let iterator = record.dimensions.split('|').zip(record.weights.split('|'));
-
-            for (dimension, weight) in iterator {
-                let dimension: usize = dimension.parse()?;
-                let weight: f64 = weight.parse()?;
-                // println!("Dimension: {:?}, Weight: {:?}", dimension, weight);
-                sparse_vector.push((dimension, weight));
-                // println!("Vector: {:?}", sparse_vector);
-                cosine_helper_set.insert(dimension, weight);
-            }
-
-            // Indexing and gathering candidates
-            let mut dim_tested: u8 = 0;
-
-            for (dim, _) in sparse_vector.iter() {
-                let deque = &mut inverted_index[*dim];
-
-                if dim_tested < QUERY_SIZE {
-                    for &candidate in deque.iter() {
-                        candidates.insert(candidate - dropped_so_far, true);
-                    }
-                    dim_tested += 1;
+            if dim_tested < self.query_size {
+                for &candidate in deque.iter() {
+                    self.candidates
+                        .insert(candidate - self.dropped_so_far, true);
                 }
-
-                deque.push_back(i);
+                dim_tested += 1;
             }
 
-            // println!("{:?}", candidates.len());
-
-            // Finding the nearest neighbor
-            best = candidates
-                .iter()
-                .map(|x| x.key())
-                .collect::<Vec<usize>>()
-                .par_iter()
-                .map(|&candidate| {
-                    let other_sparse_vector = &vectors[candidate];
-                    (
-                        candidate,
-                        sparse_dot_product_distance(&cosine_helper_set, &other_sparse_vector),
-                    )
-                })
-                .filter(|x| x.1 < THRESHOLD)
-                .min_by(|x, y| x.1.partial_cmp(&y.1).unwrap());
+            deque.push_back(index);
         }
 
-        match best {
-            Some((c, d)) => {
-                nearest_neighbors.push((c, d));
-            }
-            None => {
-                nearest_neighbors.push((i, 0.0));
-            }
-        }
+        // Finding the nearest neighbor
+        // TODO: test par_bridge to avoid collection?
+        let best_candidate = self
+            .candidates
+            .iter()
+            .map(|x| x.key())
+            .collect::<Vec<usize>>()
+            .par_iter()
+            .map(|&candidate| {
+                let other_vector = &self.vectors[candidate];
 
-        // Adding tweet to the window
-        vectors.push_back(sparse_vector);
+                (
+                    candidate,
+                    sparse_dot_product_distance_with_helper(&self.cosine_helper_set, &other_vector),
+                )
+            })
+            .filter(|x| x.1 < self.threshold)
+            .min_by(|x, y| x.1.partial_cmp(&y.1).unwrap());
 
-        // Dropping tweets from the window
-        if vectors.len() > WINDOW {
-            let to_remove = vectors.pop_front().unwrap();
+        // Is the window full already?
+        if self.vectors.len() == self.window {
+            let to_remove = self.vectors.pop_front().unwrap();
 
-            for (dim, _) in to_remove {
-                let deque = &mut inverted_index[dim];
+            for (dim, _) in to_remove.into_iter() {
+                let deque = &mut self.inverted_index[dim];
                 deque.pop_front().unwrap();
             }
 
-            dropped_so_far += 1;
+            self.dropped_so_far += 1;
         }
 
-        i += 1;
-    }
+        // Adding tweet to the window
+        self.vectors.push_back(vector);
 
-    bar.finish_at_current_pos();
-
-    // println!("{:?}", nearest_neighbors.len());
-
-    // let with_nearest_neighbor: Vec<(usize, f64)> = nearest_neighbors
-    //     .into_iter()
-    //     .enumerate()
-    //     .filter(|(j, c)| j != &c.0)
-    //     .map(|(_, c)| c)
-    //     .collect();
-
-    // println!(
-    //     "{:?}, {:?}",
-    //     with_nearest_neighbor,
-    //     with_nearest_neighbor.len()
-    // );
-
-    Ok(())
-}
-
-#[derive(Clap)]
-#[clap(version = "1.0")]
-struct CLIOptions {
-    input: String,
-    #[clap(long)]
-    total: Option<u64>,
-}
-
-fn main() {
-    let cli_args: CLIOptions = CLIOptions::parse();
-
-    if let Err(err) = clustering(cli_args.input, cli_args.total) {
-        println!("error running clustering: {}", err);
-        process::exit(1);
+        best_candidate
     }
 }
