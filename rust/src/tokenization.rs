@@ -20,7 +20,7 @@ fn reduce_lengthening(string: &str) -> String {
     for c in string.chars() {
         match last_char {
             Some(last) => {
-                if c == last {
+                if c == last && !c.is_numeric() {
                     counter += 1;
                 } else {
                     counter = 0;
@@ -189,6 +189,10 @@ impl<'a> Tokens<'a> {
     }
 
     fn must_skip_token(&self, token: &str) -> bool {
+        if token.len() > 4 && token.chars().all(|c| c.is_numeric()) {
+            return true;
+        }
+
         self.tokenizer.stoplist.contains(token)
     }
 }
@@ -249,7 +253,7 @@ impl Tokenizer {
     }
 
     pub fn add_stop_word(&mut self, word: &str) -> &mut Tokenizer {
-        self.stoplist.insert(word.to_string());
+        self.stoplist.insert(word.to_lowercase());
         self
     }
 
@@ -264,6 +268,7 @@ fn test_reduce_lengthening() {
     assert_eq!(reduce_lengthening("coool"), "coool");
     assert_eq!(reduce_lengthening("cooooool"), "coool");
     assert_eq!(reduce_lengthening("cooooooooooolool"), "cooolool");
+    assert_eq!(reduce_lengthening("100000000"), "100000000");
 }
 
 #[test]
@@ -367,6 +372,13 @@ fn test_tokenize() {
             .tokenize("Hello #EpopeeRusse! What's brewing?")
             .collect::<Vec<String>>(),
         vec!["hello", "epopee", "russe", "what", "brewing"]
+    );
+
+    assert_eq!(
+        default_tokenizer
+            .tokenize("Hello to this number: 400000 and this one: 34")
+            .collect::<Vec<String>>(),
+        vec!["hello", "to", "this", "number", "and", "this", "one", "34"]
     );
 
     let mut tokenizer_with_stopwords = Tokenizer::new();

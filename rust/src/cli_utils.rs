@@ -1,7 +1,11 @@
+use std::borrow::Cow;
 use std::collections::HashMap;
 
 use csv::Writer;
 use indicatif::{ProgressBar, ProgressStyle};
+
+use crate::stop_words::{STOP_WORDS_EN, STOP_WORDS_FR};
+use crate::tokenization::Tokenizer;
 
 pub struct ReorderedWriter<'a, W: std::io::Write> {
     writer: &'a mut Writer<W>,
@@ -36,13 +40,16 @@ impl<'a, W: std::io::Write> ReorderedWriter<'a, W> {
     }
 }
 
-pub fn acquire_progress_indicator(total: Option<u64>) -> ProgressBar {
-    match total {
+pub fn acquire_progress_indicator(
+    msg: impl Into<Cow<'static, str>>,
+    total: Option<u64>,
+) -> ProgressBar {
+    let bar = match total {
         Some(total_count) => {
             let bar = ProgressBar::new(total_count);
 
             bar.set_style(ProgressStyle::default_bar().template(
-                "[{elapsed_precise}] < [{eta_precise}] {per_sec} {bar:70} {pos:>7}/{len:7}",
+                "{msg}: [{elapsed_precise}] < [{eta_precise}] {per_sec} {wide_bar} {pos:>7}/{len:7}",
             ));
 
             bar
@@ -52,10 +59,28 @@ pub fn acquire_progress_indicator(total: Option<u64>) -> ProgressBar {
 
             bar.set_style(
                 ProgressStyle::default_spinner()
-                    .template("{spinner} [{elapsed_precise}] {per_sec} {pos}"),
+                    .template("{msg}: {spinner} [{elapsed_precise}] {per_sec} {pos}"),
             );
 
             bar
         }
+    };
+
+    bar.set_message(msg);
+
+    bar
+}
+
+pub fn acquire_tokenizer() -> Tokenizer {
+    let mut tokenizer = Tokenizer::new();
+
+    for stopword in STOP_WORDS_FR.iter() {
+        tokenizer.add_stop_word(stopword);
     }
+
+    for stopword in STOP_WORDS_EN.iter() {
+        tokenizer.add_stop_word(stopword);
+    }
+
+    tokenizer
 }
