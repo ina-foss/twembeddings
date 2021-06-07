@@ -49,7 +49,7 @@ fn strip_mentions(string: &str) -> Cow<str> {
 }
 
 fn is_hashtag(string: &str) -> bool {
-    string.len() > 2 && string.starts_with('#')
+    string.len() > 1 && string.starts_with('#')
 }
 
 /// Enum representing the hashtag splitter state

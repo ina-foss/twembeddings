@@ -25,17 +25,12 @@ impl<'a, W: std::io::Write> ReorderedWriter<'a, W> {
     pub fn write_vec(&mut self, index: usize, row: Vec<String>) {
         self.buffer.insert(index, row);
 
-        loop {
-            match self.buffer.remove(&self.next_index_to_write) {
-                Some(other_row) => {
-                    self.writer
-                        .write_record(&csv::StringRecord::from(other_row))
-                        .expect("error when writing row");
+        while let Some(other_row) = self.buffer.remove(&self.next_index_to_write) {
+            self.writer
+                .write_record(&csv::StringRecord::from(other_row))
+                .expect("error when writing row");
 
-                    self.next_index_to_write += 1;
-                }
-                None => break,
-            }
+            self.next_index_to_write += 1;
         }
     }
 }

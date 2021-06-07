@@ -17,7 +17,8 @@ struct Opts {
 
 #[derive(Clap, Debug)]
 enum SubCommand {
-    Tokenize(cmd::tokenize::TokenizeOpts),
+    Tokenize(cmd::tokenize::Opts),
+    Vocabulary(cmd::vocabulary::Opts),
 }
 
 fn main() {
@@ -25,6 +26,7 @@ fn main() {
 
     let result = match cli_args.command {
         SubCommand::Tokenize(sub_args) => cmd::tokenize::run(&sub_args),
+        SubCommand::Vocabulary(sub_args) => cmd::vocabulary::run(&sub_args),
     };
 
     std::process::exit(match result {

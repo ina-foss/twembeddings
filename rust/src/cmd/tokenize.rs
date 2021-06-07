@@ -9,7 +9,7 @@ use crate::cli_utils::{acquire_progress_indicator, acquire_tokenizer, ReorderedW
 
 #[derive(Clap, Debug)]
 #[clap(about = "Tokenize tweet text contained in a CSV file.")]
-pub struct TokenizeOpts {
+pub struct Opts {
     column: String,
     input: String,
     #[clap(long)]
@@ -18,7 +18,7 @@ pub struct TokenizeOpts {
     tsv: bool,
 }
 
-pub fn run(cli_args: &TokenizeOpts) -> Result<(), Box<dyn Error>> {
+pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new()
         .delimiter(if cli_args.tsv { b'\t' } else { b',' })
         .from_path(&cli_args.input)?;
