@@ -17,6 +17,7 @@ struct Opts {
 
 #[derive(Clap, Debug)]
 enum SubCommand {
+    Neighbors(cmd::neighbors::Opts),
     Tokenize(cmd::tokenize::Opts),
     Vocabulary(cmd::vocabulary::Opts),
 }
@@ -25,6 +26,7 @@ fn main() {
     let cli_args: Opts = Opts::parse();
 
     let result = match cli_args.command {
+        SubCommand::Neighbors(sub_args) => cmd::neighbors::run(&sub_args),
         SubCommand::Tokenize(sub_args) => cmd::tokenize::run(&sub_args),
         SubCommand::Vocabulary(sub_args) => cmd::vocabulary::run(&sub_args),
     };
