@@ -1,5 +1,11 @@
 use bitintr::Popcnt;
 use sparseset::SparseSet;
+use tab_hash::Tab64Simple;
+
+lazy_static! {
+    // TODO: convert as part of simhash struct
+    static ref UNIVERSAL_HASHER: Tab64Simple = Tab64Simple::new();
+}
 
 /// Function computing the cosine distance between two normalized sparse vectors
 /// by using a cached sparse set helper representing the first of the two vectors
@@ -33,7 +39,7 @@ pub fn simhash_64(vector: &[(usize, f64)]) -> u64 {
     let mut histogram: Vec<f64> = vec![0.0; 64];
 
     for (dim, w) in vector {
-        let mut phi = *dim as u64; // TODO: need to hash the dimension?
+        let mut phi = UNIVERSAL_HASHER.hash(*dim as u64);
 
         for counter in (0..64).rev() {
             // Chosing randomly to add or subtract weight to histogram
@@ -68,50 +74,8 @@ fn hamming_distance_64(x: u64, y: u64) -> u64 {
 }
 
 pub fn simhash_distance_64(x: u64, y: u64) -> f64 {
-    (64 - hamming_distance_64(x, y)) as f64 / 64.0
+    hamming_distance_64(x, y) as f64 / 64.0
 }
-
-// pub fn simhash_128(vector: &[(usize, f64)]) -> u128 {
-//     let mut histogram: Vec<f64> = vec![0.0; 128];
-
-//     for (dim, w) in vector {
-//         let mut phi = *dim as u128; // TODO: need to hash the dimension?
-
-//         for counter in (0..128).rev() {
-//             // Chosing randomly to add or subtract weight to histogram
-//             let bit = phi % 2 == 0;
-
-//             if bit {
-//                 histogram[counter] += w;
-//             } else {
-//                 histogram[counter] -= w;
-//             }
-
-//             phi >>= 1;
-//         }
-//     }
-
-//     let mut hash: u128 = 0;
-
-//     for (i, w) in histogram.into_iter().enumerate() {
-//         if w >= 0.0 {
-//             hash += 1;
-//         }
-//         if i < 127 {
-//             hash <<= 1;
-//         }
-//     }
-
-//     hash
-// }
-
-// fn hamming_distance_128(x: u128, y: u128) -> u32 {
-//     (x ^ y).count_ones()
-// }
-
-// pub fn simhash_distance_128(x: u128, y: u128) -> f64 {
-//     (128 - hamming_distance_128(x, y)) as f64 / 128.0
-// }
 
 // #[test]
 // fn test_simhash_64() {
