@@ -15,7 +15,6 @@ type SparseVector = Vec<(usize, f64)>;
 // const VOC_SIZE: usize = 300_000;
 
 // TODO: verify mean/median candidate set size
-// TODO: use a max clamp for normalize and for distance
 // TODO: sanity tests
 // TODO: start from window directly to easy test
 // TODO: use #[cfg] for stats within the function

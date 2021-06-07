@@ -97,7 +97,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
         wtr.write_record(&csv::StringRecord::from(match nearest_neighbor {
             Some((j, d)) => vec![i.to_string(), j.to_string(), d.to_string()],
-            None => vec![i.to_string(), "".to_string(), "0".to_string()],
+            None => vec![i.to_string(), "".to_string(), "".to_string()],
         }))?;
     }
 

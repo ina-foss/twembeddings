@@ -18,7 +18,7 @@ pub fn sparse_dot_product_distance_with_helper(
     product = 1.0 - product;
 
     // Precision error
-    if product < 0.0 {
+    if product - f64::EPSILON < 0.0 {
         return 0.0;
     }
 

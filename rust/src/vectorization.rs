@@ -20,6 +20,8 @@ pub fn vectorize(
     }
 
     // Normalizing the vector
+    norm = norm.sqrt();
+
     for (_, w) in vector.iter_mut() {
         *w /= norm;
     }
