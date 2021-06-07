@@ -62,6 +62,7 @@ pub fn acquire_progress_indicator(
     };
 
     bar.set_message(msg);
+    bar.set_draw_rate(5);
 
     bar
 }
