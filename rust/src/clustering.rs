@@ -6,13 +6,6 @@ use sparseset::SparseSet;
 use crate::cosine::sparse_dot_product_distance_with_helper;
 
 type SparseVector = Vec<(usize, f64)>;
-// const LIMIT: usize = 10_000;
-// const LIMIT: usize = usize::MAX;
-
-// const THRESHOLD: f64 = 0.69;
-// const WINDOW: usize = 1_500_000;
-// const QUERY_SIZE: u8 = 5;
-// const VOC_SIZE: usize = 300_000;
 
 // TODO: verify mean/median candidate set size
 // TODO: sanity tests
