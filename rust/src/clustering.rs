@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use rayon::prelude::*;
 use sparseset::SparseSet;
 
-use crate::cosine::{simhash_64, simhash_distance_64, sparse_dot_product_distance_with_helper};
+use crate::cosine::sparse_dot_product_distance_with_helper;
 
 type SparseVector = Vec<(usize, f64)>;
 
@@ -94,8 +94,6 @@ impl Clustering {
             deque.push_back(index);
         }
 
-        let hash = simhash_64(&vector);
-
         // Finding the nearest neighbor
         // TODO: test par_bridge to avoid collection?
         let best_candidate = self
@@ -106,19 +104,7 @@ impl Clustering {
             .par_iter()
             .map(|&candidate| {
                 let other_vector = &self.vectors[candidate];
-                if sparse_dot_product_distance_with_helper(&self.cosine_helper_set, &other_vector)
-                    < self.threshold
-                {
-                    let other_hash = simhash_64(&other_vector);
-                    println!(
-                        "{:?}, {:?}",
-                        sparse_dot_product_distance_with_helper(
-                            &self.cosine_helper_set,
-                            &other_vector
-                        ),
-                        simhash_distance_64(hash, other_hash)
-                    );
-                }
+
                 (
                     candidate,
                     sparse_dot_product_distance_with_helper(&self.cosine_helper_set, &other_vector),

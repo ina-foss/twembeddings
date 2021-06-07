@@ -76,27 +76,3 @@ fn hamming_distance_64(x: u64, y: u64) -> u64 {
 pub fn simhash_distance_64(x: u64, y: u64) -> f64 {
     hamming_distance_64(x, y) as f64 / 64.0
 }
-
-// #[test]
-// fn test_simhash_64() {
-//     let a: Vec<(usize, f64)> = vec![(23, 0.32), (59, 0.003), (4536, 0.01), (89, 0.1)];
-//     let b: Vec<(usize, f64)> = vec![(23, 0.23), (59, 0.003), (89, 0.1)];
-
-//     let a_hash = simhash_64(&a);
-//     let b_hash = simhash_64(&b);
-
-//     let mut a_helper: SparseSet<f64> = SparseSet::with_capacity(4537);
-
-//     for (dim, w) in a {
-//         a_helper.insert(dim, w);
-//     }
-
-//     // NOTE: the following does not make sense because my vectors are not normalized!
-//     dbg!(a_hash, b_hash);
-//     println!("{:?}", hamming_distance_64(a_hash, b_hash));
-//     println!("{:?}", simhash_distance_64(a_hash, b_hash));
-//     println!(
-//         "{:?}",
-//         sparse_dot_product_distance_with_helper(&a_helper, &b)
-//     );
-// }
