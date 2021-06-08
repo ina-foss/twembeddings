@@ -26,7 +26,7 @@ pub struct Clustering {
     dropped_so_far: usize,
     cosine_helper_set: SparseSet<f64>,
     inverted_index: Vec<VecDeque<usize>>,
-    vectors: VecDeque<SparseVector>,
+    vectors: VecDeque<(u64, SparseVector)>,
     candidates: SparseSet<bool>,
 }
 
@@ -71,7 +71,12 @@ impl ClusteringBuilder {
 }
 
 impl Clustering {
-    pub fn nearest_neighbor(&mut self, index: usize, vector: SparseVector) -> Option<(usize, f64)> {
+    pub fn nearest_neighbor(
+        &mut self,
+        index: usize,
+        id: u64,
+        vector: SparseVector,
+    ) -> Option<(u64, f64)> {
         self.cosine_helper_set.clear();
         self.candidates.clear();
 
@@ -103,10 +108,10 @@ impl Clustering {
             .collect::<Vec<usize>>()
             .par_iter()
             .map(|&candidate| {
-                let other_vector = &self.vectors[candidate];
+                let (other_id, other_vector) = &self.vectors[candidate];
 
                 (
-                    candidate,
+                    *other_id,
                     sparse_dot_product_distance_with_helper(&self.cosine_helper_set, &other_vector),
                 )
             })
@@ -115,7 +120,7 @@ impl Clustering {
 
         // Is the window full already?
         if self.vectors.len() == self.window {
-            let to_remove = self.vectors.pop_front().unwrap();
+            let (_, to_remove) = self.vectors.pop_front().unwrap();
 
             for (dim, _) in to_remove.into_iter() {
                 let deque = &mut self.inverted_index[dim];
@@ -126,7 +131,7 @@ impl Clustering {
         }
 
         // Adding tweet to the window
-        self.vectors.push_back(vector);
+        self.vectors.push_back((id, vector));
 
         best_candidate
     }

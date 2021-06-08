@@ -72,19 +72,19 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         let record = result?;
 
         let text_cell = &record[text_column_index];
-        let id_cell = &record[id_column_index];
+        let tweet_id: u64 = record[id_column_index].parse()?;
 
         let tokens = tokenizer.unique_tokens(text_cell);
 
         let vector = vectorize(&vocabulary, &tokens);
 
-        let nearest_neighbor = clustering.nearest_neighbor(i, vector);
+        let nearest_neighbor = clustering.nearest_neighbor(i, tweet_id, vector);
 
         write_csv_record!(
             wtr,
             match nearest_neighbor {
-                Some((j, d)) => vec![id_cell.into(), j.to_string(), d.to_string()],
-                None => vec![id_cell.into(), "".to_string(), "".to_string()],
+                Some((nn_id, d)) => vec![tweet_id.to_string(), nn_id.to_string(), d.to_string()],
+                None => vec![tweet_id.to_string(), "".to_string(), "".to_string()],
             }
         );
     }
