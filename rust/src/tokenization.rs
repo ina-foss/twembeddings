@@ -267,137 +267,142 @@ impl Tokenizer {
     }
 }
 
-#[test]
-fn test_reduce_lengthening() {
-    assert_eq!(reduce_lengthening("cool"), "cool");
-    assert_eq!(reduce_lengthening("coool"), "coool");
-    assert_eq!(reduce_lengthening("cooooool"), "coool");
-    assert_eq!(reduce_lengthening("cooooooooooolool"), "cooolool");
-    assert_eq!(reduce_lengthening("100000000"), "100000000");
-}
+#[cfg(test)]
+mod test {
+    use super::*;
 
-#[test]
-fn test_strip_urls() {
-    assert_eq!(
-        strip_urls("This is a url: http://lemonde.fr no?"),
-        "This is a url:  no?"
-    )
-}
-
-#[test]
-fn test_strip_mentions() {
-    assert_eq!(
-        strip_mentions("This is a mention: @Yomgui no?"),
-        "This is a mention:  no?"
-    )
-}
-
-#[test]
-fn split_hashtag_test() {
-    fn collect_split_hashtag(text: &str) -> Vec<&str> {
-        split_hashtag(text).collect()
+    #[test]
+    fn test_reduce_lengthening() {
+        assert_eq!(reduce_lengthening("cool"), "cool");
+        assert_eq!(reduce_lengthening("coool"), "coool");
+        assert_eq!(reduce_lengthening("cooooool"), "coool");
+        assert_eq!(reduce_lengthening("cooooooooooolool"), "cooolool");
+        assert_eq!(reduce_lengthening("100000000"), "100000000");
     }
 
-    assert_eq!(collect_split_hashtag("#test"), vec!["test"]);
-    assert_eq!(collect_split_hashtag("#Test"), vec!["Test"]);
-    assert_eq!(collect_split_hashtag("#t"), vec!["t"]);
-    assert_eq!(collect_split_hashtag("#T"), vec!["T"]);
-    assert_eq!(
-        collect_split_hashtag("#TestWhatever"),
-        vec!["Test", "Whatever"]
-    );
-    assert_eq!(
-        collect_split_hashtag("#testWhatever"),
-        vec!["test", "Whatever"]
-    );
-    assert_eq!(
-        collect_split_hashtag("#ÉpopéeRusse"),
-        vec!["Épopée", "Russe"]
-    );
-    assert_eq!(
-        collect_split_hashtag("#TestOkFinal"),
-        vec!["Test", "Ok", "Final"]
-    );
-    assert_eq!(
-        collect_split_hashtag("#TestOkFinalT"),
-        vec!["Test", "Ok", "Final", "T"]
-    );
-    assert_eq!(
-        collect_split_hashtag("#Test123Whatever"),
-        vec!["Test", "123", "Whatever"]
-    );
-    assert_eq!(collect_split_hashtag("#TDF2018"), vec!["TDF", "2018"]);
-    assert_eq!(collect_split_hashtag("#T2018"), vec!["T", "2018"]);
-    assert_eq!(
-        collect_split_hashtag("#TheID2018"),
-        vec!["The", "ID", "2018"]
-    );
-    assert_eq!(
-        collect_split_hashtag("#8YearsOfOneDirection"),
-        vec!["8", "Years", "Of", "One", "Direction"]
-    );
-    assert_eq!(
-        collect_split_hashtag("#This18Gloss"),
-        vec!["This", "18", "Gloss"]
-    );
-    assert_eq!(
-        collect_split_hashtag("#WordpressIDInformation"),
-        vec!["Wordpress", "ID", "Information"]
-    );
-    assert_eq!(
-        collect_split_hashtag("#LearnWCFInSixEasyMonths"),
-        vec!["Learn", "WCF", "In", "Six", "Easy", "Months"]
-    );
-    assert_eq!(
-        collect_split_hashtag("#ThisIsInPascalCase"),
-        vec!["This", "Is", "In", "Pascal", "Case"]
-    );
-    assert_eq!(
-        collect_split_hashtag("#whatAboutThis"),
-        vec!["what", "About", "This"]
-    );
-    assert_eq!(
-        collect_split_hashtag("#This123thingOverload"),
-        vec!["This", "123", "thing", "Overload"]
-    );
-    assert_eq!(collect_split_hashtag("#final19"), vec!["final", "19"]);
-}
+    #[test]
+    fn test_strip_urls() {
+        assert_eq!(
+            strip_urls("This is a url: http://lemonde.fr no?"),
+            "This is a url:  no?"
+        )
+    }
 
-#[test]
-fn test_tokenize() {
-    let default_tokenizer = Tokenizer::new();
+    #[test]
+    fn test_strip_mentions() {
+        assert_eq!(
+            strip_mentions("This is a mention: @Yomgui no?"),
+            "This is a mention:  no?"
+        )
+    }
 
-    assert_eq!(
+    #[test]
+    fn split_hashtag_test() {
+        fn collect_split_hashtag(text: &str) -> Vec<&str> {
+            split_hashtag(text).collect()
+        }
+
+        assert_eq!(collect_split_hashtag("#test"), vec!["test"]);
+        assert_eq!(collect_split_hashtag("#Test"), vec!["Test"]);
+        assert_eq!(collect_split_hashtag("#t"), vec!["t"]);
+        assert_eq!(collect_split_hashtag("#T"), vec!["T"]);
+        assert_eq!(
+            collect_split_hashtag("#TestWhatever"),
+            vec!["Test", "Whatever"]
+        );
+        assert_eq!(
+            collect_split_hashtag("#testWhatever"),
+            vec!["test", "Whatever"]
+        );
+        assert_eq!(
+            collect_split_hashtag("#ÉpopéeRusse"),
+            vec!["Épopée", "Russe"]
+        );
+        assert_eq!(
+            collect_split_hashtag("#TestOkFinal"),
+            vec!["Test", "Ok", "Final"]
+        );
+        assert_eq!(
+            collect_split_hashtag("#TestOkFinalT"),
+            vec!["Test", "Ok", "Final", "T"]
+        );
+        assert_eq!(
+            collect_split_hashtag("#Test123Whatever"),
+            vec!["Test", "123", "Whatever"]
+        );
+        assert_eq!(collect_split_hashtag("#TDF2018"), vec!["TDF", "2018"]);
+        assert_eq!(collect_split_hashtag("#T2018"), vec!["T", "2018"]);
+        assert_eq!(
+            collect_split_hashtag("#TheID2018"),
+            vec!["The", "ID", "2018"]
+        );
+        assert_eq!(
+            collect_split_hashtag("#8YearsOfOneDirection"),
+            vec!["8", "Years", "Of", "One", "Direction"]
+        );
+        assert_eq!(
+            collect_split_hashtag("#This18Gloss"),
+            vec!["This", "18", "Gloss"]
+        );
+        assert_eq!(
+            collect_split_hashtag("#WordpressIDInformation"),
+            vec!["Wordpress", "ID", "Information"]
+        );
+        assert_eq!(
+            collect_split_hashtag("#LearnWCFInSixEasyMonths"),
+            vec!["Learn", "WCF", "In", "Six", "Easy", "Months"]
+        );
+        assert_eq!(
+            collect_split_hashtag("#ThisIsInPascalCase"),
+            vec!["This", "Is", "In", "Pascal", "Case"]
+        );
+        assert_eq!(
+            collect_split_hashtag("#whatAboutThis"),
+            vec!["what", "About", "This"]
+        );
+        assert_eq!(
+            collect_split_hashtag("#This123thingOverload"),
+            vec!["This", "123", "thing", "Overload"]
+        );
+        assert_eq!(collect_split_hashtag("#final19"), vec!["final", "19"]);
+    }
+
+    #[test]
+    fn test_tokenize() {
+        let default_tokenizer = Tokenizer::new();
+
+        assert_eq!(
         default_tokenizer.tokenize("Hello World, this is I the élémental @Yomgui http://lemonde.fr type looooool! #Whatever").collect::<Vec<String>>(),
         vec!["hello", "world", "this", "is", "the", "elemental", "type", "loool", "whatever"]
     );
 
-    assert_eq!(
-        default_tokenizer
-            .tokenize("Hello #EpopeeRusse! What's brewing?")
-            .collect::<Vec<String>>(),
-        vec!["hello", "epopee", "russe", "what", "brewing"]
-    );
+        assert_eq!(
+            default_tokenizer
+                .tokenize("Hello #EpopeeRusse! What's brewing?")
+                .collect::<Vec<String>>(),
+            vec!["hello", "epopee", "russe", "what", "brewing"]
+        );
 
-    assert_eq!(
-        default_tokenizer
-            .tokenize("Hello to this number: 400000 and this one: 34")
-            .collect::<Vec<String>>(),
-        vec!["hello", "to", "this", "number", "and", "this", "one", "34"]
-    );
+        assert_eq!(
+            default_tokenizer
+                .tokenize("Hello to this number: 400000 and this one: 34")
+                .collect::<Vec<String>>(),
+            vec!["hello", "to", "this", "number", "and", "this", "one", "34"]
+        );
 
-    assert_eq!(
-        default_tokenizer.unique_tokens("Hello! hello bonjour hello?"),
-        vec!["hello", "bonjour"]
-    );
+        assert_eq!(
+            default_tokenizer.unique_tokens("Hello! hello bonjour hello?"),
+            vec!["hello", "bonjour"]
+        );
 
-    let mut tokenizer_with_stopwords = Tokenizer::new();
-    tokenizer_with_stopwords.add_stop_word("world");
+        let mut tokenizer_with_stopwords = Tokenizer::new();
+        tokenizer_with_stopwords.add_stop_word("world");
 
-    assert_eq!(
-        tokenizer_with_stopwords
-            .tokenize("Hello World!")
-            .collect::<Vec<String>>(),
-        vec!["hello"]
-    );
+        assert_eq!(
+            tokenizer_with_stopwords
+                .tokenize("Hello World!")
+                .collect::<Vec<String>>(),
+            vec!["hello"]
+        );
+    }
 }
