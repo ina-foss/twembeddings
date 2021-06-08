@@ -5,7 +5,7 @@ use std::error::Error;
 use clap::Clap;
 use serde::Deserialize;
 
-use crate::cli_utils::{acquire_progress_indicator, acquire_tokenizer};
+use crate::cli_utils::{acquire_progress_indicator, acquire_tokenizer, get_column_index};
 use crate::clustering::ClusteringBuilder;
 use crate::vectorization::vectorize;
 
@@ -58,10 +58,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     let headers = rdr.headers()?;
 
-    let text_column_index = headers
-        .iter()
-        .position(|v| v == "text")
-        .ok_or(format!("\"text\" column does not exist in given CSV file!"))?;
+    let text_column_index = get_column_index(&headers, "text")?;
 
     let tokenizer = acquire_tokenizer();
     let mut clustering = ClusteringBuilder::new(vocabulary.len(), cli_args.window).build();

@@ -5,7 +5,9 @@ use std::sync::Mutex;
 use clap::Clap;
 use rayon::prelude::*;
 
-use crate::cli_utils::{acquire_progress_indicator, acquire_tokenizer, ReorderedWriter};
+use crate::cli_utils::{
+    acquire_progress_indicator, acquire_tokenizer, get_column_index, ReorderedWriter,
+};
 
 #[derive(Clap, Debug)]
 #[clap(about = "Tokenize tweet text contained in a CSV file.")]
@@ -29,10 +31,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     let headers = rdr.headers()?;
 
-    let text_column_index = headers
-        .iter()
-        .position(|v| v == "text")
-        .ok_or(format!("\"text\" column does not exist in given CSV file!"))?;
+    let text_column_index = get_column_index(&headers, "text")?;
 
     let tokenizer = acquire_tokenizer();
     let reordered_writer = ReorderedWriter::new(&mut wtr);

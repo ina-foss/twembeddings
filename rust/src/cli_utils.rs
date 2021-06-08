@@ -17,6 +17,13 @@ macro_rules! write_csv_record {
     }};
 }
 
+pub fn get_column_index(headers: &csv::StringRecord, column_name: &str) -> Result<usize, String> {
+    headers.iter().position(|v| v == column_name).ok_or(format!(
+        "\"{:?}\" column does not exist in given CSV file!",
+        column_name
+    ))
+}
+
 pub struct ReorderedWriter<'a, W: std::io::Write> {
     writer: &'a mut Writer<W>,
     next_index_to_write: usize,
