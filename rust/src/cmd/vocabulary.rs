@@ -82,7 +82,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         .from_path(&cli_args.input)?;
 
     let mut wtr = csv::Writer::from_writer(std::io::stdout());
-    wtr.write_record(&csv::StringRecord::from(vec!["token", "df", "idf"]))?;
+    write_csv_record!(wtr, ["token", "df", "idf"]);
 
     let bar = acquire_progress_indicator("Tokenizing tweets", cli_args.total);
 
@@ -123,6 +123,8 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
             document_frequencies.add_doc(tokens);
         });
 
+    bar.finish_at_current_pos();
+
     let document_frequencies = mutex.into_inner()?;
     let doc_count = document_frequencies.doc_count();
     let voc_size = document_frequencies.voc_size();
@@ -130,15 +132,11 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let mut actual_voc_size = 0;
 
     for (token, df, idf) in document_frequencies.into_vocab() {
-        wtr.write_record(&csv::StringRecord::from(vec![
-            token,
-            df.to_string(),
-            idf.to_string(),
-        ]))?;
+        write_csv_record!(wtr, [token, df.to_string(), idf.to_string()]);
         actual_voc_size += 1;
     }
 
-    bar.finish_at_current_pos();
+    wtr.flush()?;
 
     eprintln!("Tokenized tweets: {:?}", doc_count);
     eprintln!("Total vocab size: {:?}", voc_size);

@@ -24,7 +24,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         .from_path(&cli_args.input)?;
 
     let mut wtr = csv::Writer::from_writer(std::io::stdout());
-    wtr.write_record(&csv::StringRecord::from(vec!["tokens"]))?;
+    write_csv_record!(wtr, ["tokens"]);
 
     let bar = acquire_progress_indicator("Tokenizing tweets", cli_args.total);
 

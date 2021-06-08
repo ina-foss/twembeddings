@@ -73,12 +73,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let tokenizer = acquire_tokenizer();
     let mut clustering = ClusteringBuilder::new(vocabulary.len(), cli_args.window).build();
 
-    // TODO: learn to write a macro
-    wtr.write_record(&csv::StringRecord::from(vec![
-        "index",
-        "nearest_neighbor",
-        "distance",
-    ]))?;
+    write_csv_record!(wtr, ["index", "nearest_neighbor", "distance"]);
 
     for (i, result) in rdr.records().enumerate() {
         bar.inc(1);
@@ -95,10 +90,13 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
         let nearest_neighbor = clustering.nearest_neighbor(i, vector);
 
-        wtr.write_record(&csv::StringRecord::from(match nearest_neighbor {
-            Some((j, d)) => vec![i.to_string(), j.to_string(), d.to_string()],
-            None => vec![i.to_string(), "".to_string(), "".to_string()],
-        }))?;
+        write_csv_record!(
+            wtr,
+            match nearest_neighbor {
+                Some((j, d)) => vec![i.to_string(), j.to_string(), d.to_string()],
+                None => vec![i.to_string(), "".to_string(), "".to_string()],
+            }
+        );
     }
 
     bar.finish_at_current_pos();

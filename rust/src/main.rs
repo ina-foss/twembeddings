@@ -3,6 +3,7 @@ extern crate lazy_static;
 
 use clap::Clap;
 
+#[macro_use]
 pub mod cli_utils;
 pub mod clustering;
 pub mod cmd;

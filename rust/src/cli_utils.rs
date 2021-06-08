@@ -7,6 +7,16 @@ use indicatif::{ProgressBar, ProgressStyle};
 use crate::stop_words::{STOP_WORDS_EN, STOP_WORDS_FR};
 use crate::tokenization::Tokenizer;
 
+macro_rules! write_csv_record {
+    ($wtr: expr, $items: expr) => {{
+        let mut record = csv::StringRecord::new();
+        for item in $items.iter() {
+            record.push_field(item);
+        }
+        $wtr.write_record(&record)?;
+    }};
+}
+
 pub struct ReorderedWriter<'a, W: std::io::Write> {
     writer: &'a mut Writer<W>,
     next_index_to_write: usize,
