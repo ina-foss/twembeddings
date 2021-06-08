@@ -31,7 +31,7 @@ pub struct ReorderedWriter<'a, W: std::io::Write> {
 }
 
 impl<'a, W: std::io::Write> ReorderedWriter<'a, W> {
-    pub fn new(writer: &'a mut Writer<W>) -> ReorderedWriter<'a, W> {
+    pub fn new(writer: &'a mut Writer<W>) -> Self {
         ReorderedWriter {
             writer,
             next_index_to_write: 0,

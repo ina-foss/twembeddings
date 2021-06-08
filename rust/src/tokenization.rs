@@ -72,7 +72,7 @@ struct HashtagSplit<'a> {
 }
 
 impl<'a> HashtagSplit<'a> {
-    pub fn new(hashtag: &str) -> HashtagSplit {
+    pub fn new(hashtag: &'a str) -> Self {
         let mut chars = hashtag.char_indices();
 
         // Consuming the hashtag `#` and first char
@@ -92,7 +92,7 @@ impl<'a> HashtagSplit<'a> {
 impl<'a> Iterator for HashtagSplit<'a> {
     type Item = &'a str;
 
-    fn next(&mut self) -> Option<&'a str> {
+    fn next(&mut self) -> Option<Self::Item> {
         if self.done {
             return None;
         }
@@ -172,7 +172,7 @@ pub struct Tokens<'a> {
 }
 
 impl<'a> Tokens<'a> {
-    pub fn new(text: &str, tokenizer: &'a Tokenizer) -> Tokens<'a> {
+    pub fn new(text: &str, tokenizer: &'a Tokenizer) -> Self {
         let text = strip_urls(text);
         let text = strip_mentions(&text);
         let text = unidecode(&text);
@@ -201,7 +201,7 @@ impl<'a> Tokens<'a> {
 impl<'a> Iterator for Tokens<'a> {
     type Item = String;
 
-    fn next(&mut self) -> Option<String> {
+    fn next(&mut self) -> Option<Self::Item> {
         loop {
             let token = if let Some(value) = self.hashtag_split.pop_front() {
                 value
@@ -249,11 +249,11 @@ impl Default for Tokenizer {
 }
 
 impl Tokenizer {
-    pub fn new() -> Tokenizer {
+    pub fn new() -> Self {
         Tokenizer::default()
     }
 
-    pub fn add_stop_word(&mut self, word: &str) -> &mut Tokenizer {
+    pub fn add_stop_word(&mut self, word: &str) -> &mut Self {
         self.stoplist.insert(word.to_lowercase());
         self
     }

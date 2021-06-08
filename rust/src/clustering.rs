@@ -31,7 +31,7 @@ pub struct Clustering {
 }
 
 impl ClusteringBuilder {
-    pub fn new(voc_size: usize, window: usize) -> ClusteringBuilder {
+    pub fn new(voc_size: usize, window: usize) -> Self {
         ClusteringBuilder {
             voc_size,
             threshold: 0.7,
@@ -40,12 +40,12 @@ impl ClusteringBuilder {
         }
     }
 
-    pub fn with_threshold(&mut self, threshold: f64) -> &mut ClusteringBuilder {
+    pub fn with_threshold(&mut self, threshold: f64) -> &mut Self {
         self.threshold = threshold;
         self
     }
 
-    pub fn with_query_size(&mut self, query_size: u8) -> &mut ClusteringBuilder {
+    pub fn with_query_size(&mut self, query_size: u8) -> &mut Self {
         self.query_size = query_size;
         self
     }
