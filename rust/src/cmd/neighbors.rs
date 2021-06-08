@@ -59,22 +59,22 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let headers = rdr.headers()?;
 
     let text_column_index = get_column_index(&headers, "text")?;
+    let id_column_index = get_column_index(&headers, "id")?;
 
     let tokenizer = acquire_tokenizer();
     let mut clustering = ClusteringBuilder::new(vocabulary.len(), cli_args.window).build();
 
-    write_csv_record!(wtr, ["index", "nearest_neighbor", "distance"]);
+    write_csv_record!(wtr, ["id", "nearest_neighbor", "distance"]);
 
     for (i, result) in rdr.records().enumerate() {
         bar.inc(1);
 
         let record = result?;
 
-        let text_cell = record
-            .get(text_column_index)
-            .expect("Found a row with fewer columns than expected!");
+        let text_cell = &record[text_column_index];
+        let id_cell = &record[id_column_index];
 
-        let tokens = tokenizer.unique_tokens(&text_cell);
+        let tokens = tokenizer.unique_tokens(text_cell);
 
         let vector = vectorize(&vocabulary, &tokens);
 
@@ -83,8 +83,8 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         write_csv_record!(
             wtr,
             match nearest_neighbor {
-                Some((j, d)) => vec![i.to_string(), j.to_string(), d.to_string()],
-                None => vec![i.to_string(), "".to_string(), "".to_string()],
+                Some((j, d)) => vec![id_cell.into(), j.to_string(), d.to_string()],
+                None => vec![id_cell.into(), "".to_string(), "".to_string()],
             }
         );
     }
