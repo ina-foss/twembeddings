@@ -21,18 +21,18 @@ struct Opts {
 
 #[derive(Clap, Debug)]
 enum SubCommand {
-    Neighbors(cmd::neighbors::Opts),
-    Tokenize(cmd::tokenize::Opts),
-    Vocabulary(cmd::vocabulary::Opts),
+    Nn(cmd::neighbors::Opts),
+    Tok(cmd::tokenize::Opts),
+    Vocab(cmd::vocabulary::Opts),
 }
 
 fn main() {
     let cli_args: Opts = Opts::parse();
 
     let result = match cli_args.command {
-        SubCommand::Neighbors(sub_args) => cmd::neighbors::run(&sub_args),
-        SubCommand::Tokenize(sub_args) => cmd::tokenize::run(&sub_args),
-        SubCommand::Vocabulary(sub_args) => cmd::vocabulary::run(&sub_args),
+        SubCommand::Nn(sub_args) => cmd::neighbors::run(&sub_args),
+        SubCommand::Tok(sub_args) => cmd::tokenize::run(&sub_args),
+        SubCommand::Vocab(sub_args) => cmd::vocabulary::run(&sub_args),
     };
 
     std::process::exit(match result {

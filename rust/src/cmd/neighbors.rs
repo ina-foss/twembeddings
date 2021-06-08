@@ -17,10 +17,9 @@ struct VocRecord {
 }
 
 #[derive(Clap, Debug)]
-#[clap(about = "Find tweet nearest neighbors contained within a given window.")]
+#[clap(about = "Find tweets nearest neighbors.")]
 pub struct Opts {
     voc_input: String,
-    column: String,
     input: String,
     #[clap(short, long)]
     window: usize,
@@ -59,17 +58,11 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     let headers = rdr.headers()?;
 
-    let column_index = headers.iter().position(|v| v == cli_args.column);
+    let text_column_index = headers
+        .iter()
+        .position(|v| v == "text")
+        .ok_or(format!("\"text\" column does not exist in given CSV file!"))?;
 
-    if column_index.is_none() {
-        return Err(format!(
-            "Column \"{}\" does not exist in given CSV file!",
-            cli_args.column
-        )
-        .into());
-    }
-
-    let column_index = column_index.unwrap();
     let tokenizer = acquire_tokenizer();
     let mut clustering = ClusteringBuilder::new(vocabulary.len(), cli_args.window).build();
 
@@ -81,7 +74,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         let record = result?;
 
         let text_cell = record
-            .get(column_index)
+            .get(text_column_index)
             .expect("Found a row with fewer columns than expected!");
 
         let tokens = tokenizer.unique_tokens(&text_cell);

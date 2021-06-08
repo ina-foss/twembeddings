@@ -68,7 +68,6 @@ impl DocumentFrequencies {
 #[derive(Clap, Debug)]
 #[clap(about = "Extract tweet vocabulary from the given CSV file.")]
 pub struct Opts {
-    column: String,
     input: String,
     #[clap(long)]
     total: Option<u64>,
@@ -88,17 +87,10 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     let headers = rdr.headers()?;
 
-    let column_index = headers.iter().position(|v| v == cli_args.column);
-
-    if column_index.is_none() {
-        return Err(format!(
-            "Column \"{}\" does not exist in given CSV file!",
-            cli_args.column
-        )
-        .into());
-    }
-
-    let column_index = column_index.unwrap();
+    let text_column_index = headers
+        .iter()
+        .position(|v| v == "text")
+        .ok_or(format!("\"text\" column does not exist in given CSV file!"))?;
 
     let tokenizer = acquire_tokenizer();
     let document_frequencies = DocumentFrequencies::new();
@@ -112,7 +104,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
             tokenizer.unique_tokens(
                 &record
-                    .get(column_index)
+                    .get(text_column_index)
                     .expect("Found a row with fewer columns than expected!"),
             )
         })
