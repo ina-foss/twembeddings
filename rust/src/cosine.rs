@@ -1,4 +1,5 @@
 use bitintr::Popcnt;
+use rayon::prelude::*;
 use sparseset::SparseSet;
 use tab_hash::Tab64Simple;
 
@@ -21,6 +22,30 @@ pub fn sparse_dot_product_distance_with_helper(
         let w1 = helper.get(*dim).unwrap_or(&0.0);
         product += w1 * w2;
     }
+
+    product = 1.0 - product;
+
+    // Precision error
+    // TODO: need a larger epsilon?
+    if product - f64::EPSILON < 0.0 {
+        return 0.0;
+    }
+
+    product
+}
+
+#[inline]
+pub fn parallel_sparse_dot_product_distance_with_helper(
+    helper: &SparseSet<f64>,
+    other: &[(usize, f64)],
+) -> f64 {
+    let mut product: f64 = other
+        .par_iter()
+        .map(|(dim, w2)| {
+            let w1 = helper.get(*dim).unwrap_or(&0.0);
+            w1 * w2
+        })
+        .sum();
 
     product = 1.0 - product;
 
