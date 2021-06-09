@@ -46,7 +46,8 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         let record = result?;
 
         let date_cell = &record[date_column_index];
-        let datetime = NaiveDateTime::parse_from_str(date_cell, date_format)?;
+        let datetime = NaiveDateTime::parse_from_str(date_cell, date_format)
+            .or(Err("Could not parse given date. Try --long-format?"))?;
         let day = datetime.format("%Y-%m-%d").to_string();
 
         days.entry(day).and_modify(|x| *x += 1).or_insert(1);
