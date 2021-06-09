@@ -10,6 +10,7 @@ edition = "2018"
 [dependencies]
 bitintr = "0.3.0"
 clap = "3.0.0-beta.2"
+chrono = "0.4.19"
 csv = "1.1"
 indicatif = "0.16.2"
 itertools = "0.10.0"
