@@ -24,6 +24,7 @@ enum SubCommand {
     Nn(cmd::neighbors::Opts),
     Tok(cmd::tokenize::Opts),
     Vocab(cmd::vocabulary::Opts),
+    Window(cmd::window::Opts),
 }
 
 fn main() {
@@ -33,6 +34,7 @@ fn main() {
         SubCommand::Nn(sub_args) => cmd::neighbors::run(&sub_args),
         SubCommand::Tok(sub_args) => cmd::tokenize::run(&sub_args),
         SubCommand::Vocab(sub_args) => cmd::vocabulary::run(&sub_args),
+        SubCommand::Window(sub_args) => cmd::window::run(&sub_args),
     };
 
     std::process::exit(match result {
