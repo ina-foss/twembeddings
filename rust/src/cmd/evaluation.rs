@@ -1,4 +1,6 @@
 use std::boxed::Box;
+use std::collections::HashMap;
+use std::collections::HashSet;
 use std::error::Error;
 
 use clap::Clap;
@@ -28,22 +30,34 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let id_column_index = get_column_index(&headers, "id")?;
     let label_column_index = get_column_index(&headers, "label")?;
 
+    let mut truth: HashMap<u64, usize> = HashMap::new();
+    let mut distinct_truth_labels: HashSet<usize> = HashSet::new();
+
     for result in rdr.records() {
         bar.inc(1);
 
         let record = result?;
         let id: u64 = record[id_column_index].parse()?;
-        let label: Option<usize> = record[label_column_index]
+        let label_option: Option<usize> = record[label_column_index]
             .split('.')
             .next()
             .unwrap()
             .parse()
             .ok();
 
-        println!("id = {:?}, label = {:?}", id, label);
+        if let Some(label) = label_option {
+            truth.insert(id, label);
+            distinct_truth_labels.insert(label);
+        }
     }
 
     bar.finish_at_current_pos();
+
+    eprintln!(
+        "Indexed {:?} labeled tweets as truth, arranged in {:?} clusters.",
+        truth.len(),
+        distinct_truth_labels.len()
+    );
 
     Ok(())
 }
