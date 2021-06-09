@@ -64,7 +64,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let tokenizer = acquire_tokenizer();
     let mut clustering = ClusteringBuilder::new(vocabulary.len(), cli_args.window).build();
 
-    write_csv_record!(wtr, ["id", "nearest_neighbor", "distance"]);
+    write_csv_record!(wtr, ["id", "nearest_neighbor", "thread_id", "distance"]);
 
     for (i, result) in rdr.records().enumerate() {
         bar.inc(1);
@@ -78,13 +78,23 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
         let vector = vectorize(&vocabulary, &tokens);
 
-        let nearest_neighbor = clustering.nearest_neighbor(i, tweet_id, vector);
+        let clustering_result = clustering.nearest_neighbor(i, tweet_id, vector);
 
         write_csv_record!(
             wtr,
-            match nearest_neighbor {
-                Some((nn_id, d)) => vec![tweet_id.to_string(), nn_id.to_string(), d.to_string()],
-                None => vec![tweet_id.to_string(), "".to_string(), "".to_string()],
+            match clustering_result.0 {
+                Some((nn_id, d)) => vec![
+                    tweet_id.to_string(),
+                    nn_id.to_string(),
+                    clustering_result.1.to_string(),
+                    d.to_string()
+                ],
+                None => vec![
+                    tweet_id.to_string(),
+                    "".to_string(),
+                    clustering_result.1.to_string(),
+                    "".to_string()
+                ],
             }
         );
     }

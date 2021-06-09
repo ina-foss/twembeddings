@@ -24,9 +24,12 @@ pub struct Clustering {
     window: usize,
     query_size: u8,
     dropped_so_far: usize,
+    current_thread_id: usize,
     cosine_helper_set: SparseSet<f64>,
     inverted_index: Vec<VecDeque<usize>>,
-    vectors: VecDeque<(u64, SparseVector)>,
+    // TODO: this should be nice to turn this 3-tuple into a struct but I
+    // don't know how to do so without breaking the code regarding ownership
+    vectors: VecDeque<(u64, usize, SparseVector)>,
     candidates: SparseSet<bool>,
 }
 
@@ -62,6 +65,7 @@ impl ClusteringBuilder {
             window: self.window,
             query_size: self.query_size,
             dropped_so_far: 0,
+            current_thread_id: 0,
             cosine_helper_set: SparseSet::with_capacity(self.voc_size),
             inverted_index,
             vectors: VecDeque::with_capacity(self.window),
@@ -76,7 +80,7 @@ impl Clustering {
         index: usize,
         id: u64,
         vector: SparseVector,
-    ) -> Option<(u64, f64)> {
+    ) -> (Option<(u64, f64)>, usize) {
         self.cosine_helper_set.clear();
         self.candidates.clear();
 
@@ -108,19 +112,20 @@ impl Clustering {
             .collect::<Vec<usize>>()
             .par_iter()
             .map(|&candidate| {
-                let (other_id, other_vector) = &self.vectors[candidate];
+                let (other_id, other_thread_id, other_vector) = &self.vectors[candidate];
 
                 (
                     *other_id,
+                    *other_thread_id,
                     sparse_dot_product_distance_with_helper(&self.cosine_helper_set, &other_vector),
                 )
             })
-            .filter(|x| x.1 < self.threshold)
-            .min_by(|x, y| x.1.partial_cmp(&y.1).unwrap());
+            .filter(|x| x.2 < self.threshold)
+            .min_by(|x, y| x.2.partial_cmp(&y.2).unwrap());
 
         // Is the window full already?
         if self.vectors.len() == self.window {
-            let (_, to_remove) = self.vectors.pop_front().unwrap();
+            let (_, _, to_remove) = self.vectors.pop_front().unwrap();
 
             for (dim, _) in to_remove.into_iter() {
                 let deque = &mut self.inverted_index[dim];
@@ -131,8 +136,17 @@ impl Clustering {
         }
 
         // Adding tweet to the window
-        self.vectors.push_back((id, vector));
-
-        best_candidate
+        match best_candidate {
+            Some((other_id, other_thread_id, d)) => {
+                self.vectors.push_back((id, other_thread_id, vector));
+                (Some((other_id, d)), other_thread_id)
+            }
+            None => {
+                let thread_id = self.current_thread_id;
+                self.vectors.push_back((id, thread_id, vector));
+                self.current_thread_id += 1;
+                (None, thread_id)
+            }
+        }
     }
 }
