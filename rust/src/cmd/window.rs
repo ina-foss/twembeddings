@@ -8,11 +8,14 @@ use clap::Clap;
 use crate::cli_utils::{acquire_progress_indicator, get_column_index};
 
 const LONG_DATE_FORMAT: &str = "%a %b %d %H:%M:%S +0000 %Y";
+const SHORT_DATE_FORMAT: &str = "%a %b %d %H:%M:%S";
 
 #[derive(Clap, Debug)]
 #[clap(about = "Infer the size of the window for the clustering algorithm.")]
 pub struct Opts {
     input: String,
+    #[clap(long, short)]
+    long_format: bool,
     #[clap(long)]
     total: Option<u64>,
     #[clap(long)]
@@ -25,6 +28,11 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         .from_path(&cli_args.input)?;
 
     let bar = acquire_progress_indicator("Processing tweets", cli_args.total);
+    let date_format = if cli_args.long_format {
+        LONG_DATE_FORMAT
+    } else {
+        SHORT_DATE_FORMAT
+    };
 
     let headers = rdr.headers()?;
 
@@ -38,7 +46,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         let record = result?;
 
         let date_cell = &record[date_column_index];
-        let datetime = NaiveDateTime::parse_from_str(date_cell, LONG_DATE_FORMAT)?;
+        let datetime = NaiveDateTime::parse_from_str(date_cell, date_format)?;
         let day = datetime.format("%Y-%m-%d").to_string();
 
         days.entry(day).and_modify(|x| *x += 1).or_insert(1);
