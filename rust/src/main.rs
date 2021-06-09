@@ -21,6 +21,7 @@ struct Opts {
 
 #[derive(Clap, Debug)]
 enum SubCommand {
+    Eval(cmd::evaluation::Opts),
     Nn(cmd::neighbors::Opts),
     Tok(cmd::tokenize::Opts),
     Vocab(cmd::vocabulary::Opts),
@@ -31,6 +32,7 @@ fn main() {
     let cli_args: Opts = Opts::parse();
 
     let result = match cli_args.command {
+        SubCommand::Eval(sub_args) => cmd::evaluation::run(&sub_args),
         SubCommand::Nn(sub_args) => cmd::neighbors::run(&sub_args),
         SubCommand::Tok(sub_args) => cmd::tokenize::run(&sub_args),
         SubCommand::Vocab(sub_args) => cmd::vocabulary::run(&sub_args),
