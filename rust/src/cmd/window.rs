@@ -23,6 +23,7 @@ pub struct Opts {
     tsv: bool,
 }
 
+// TODO: could infer window from the vocab command in fact
 pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new()
         .delimiter(if cli_args.tsv { b'\t' } else { b',' })

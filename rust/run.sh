@@ -21,7 +21,7 @@ echo
 
 echo "2. Determining window size"
 echo "--------------------------"
-WINDOW=`$TWEMBEDDINGS window $1 --raw`
+WINDOW=`$TWEMBEDDINGS window $1 --raw --total $TOTAL`
 echo "Optimal window size should be: $WINDOW"
 echo
 
