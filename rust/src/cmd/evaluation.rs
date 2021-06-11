@@ -22,7 +22,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         .delimiter(if cli_args.tsv { b'\t' } else { b',' })
         .from_path(&cli_args.truth)?;
 
-    let bar = acquire_progress_indicator("Indexing truth", cli_args.total);
+    let bar = acquire_progress_indicator("Indexing truth", None);
 
     let headers = rdr.headers()?;
 
@@ -102,27 +102,41 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     );
 
     // Running the actual evaluation using best matching scheme
-    let bar = acquire_progress_indicator("Running evaluation", cli_args.total);
+    let bar = acquire_progress_indicator("Running evaluation", Some(truth_clusters.len() as u64));
 
     let mut precision = 0.0;
     let mut recall = 0.0;
     let mut f1 = 0.0;
+    let mut n: usize = 0;
 
     for truth_cluster in truth_clusters.values() {
         bar.inc(1);
 
         let mut candidates: HashMap<usize, usize> = HashMap::new();
+        let mut truth_cluster_size: usize = 0;
 
         for truth_id in truth_cluster {
-            let candidate_thread_id = *predicted.get(truth_id).unwrap();
+            match predicted.get(truth_id) {
+                Some(&candidate_thread_id) => {
+                    candidates
+                        .entry(candidate_thread_id)
+                        .and_modify(|x| *x += 1)
+                        .or_insert(1);
 
-            candidates
-                .entry(candidate_thread_id)
-                .and_modify(|x| *x += 1)
-                .or_insert(1);
+                    truth_cluster_size += 1;
+                }
+                None => {
+                    continue;
+                }
+            }
         }
 
-        let truth_cluster_size = truth_cluster.len();
+        if truth_cluster_size == 0 {
+            continue;
+        }
+
+        // Only adding to n if cluster contains any valid tweet
+        n += 1;
 
         let best = candidates
             .iter()
@@ -149,7 +163,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         f1 += best.2;
     }
 
-    let n = truth_clusters.len() as f64;
+    let n = n as f64;
 
     precision /= n;
     recall /= n;

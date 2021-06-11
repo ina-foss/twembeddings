@@ -32,4 +32,4 @@ echo
 
 echo "4. Evaluating"
 echo "-------------"
-$TWEMBEDDINGS eval $2 $TMP_FOLDER/nn.csv
+$TWEMBEDDINGS eval $2 $TMP_FOLDER/nn.csv --total $TOTAL
