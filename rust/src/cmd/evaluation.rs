@@ -70,9 +70,8 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     let bar = acquire_progress_indicator("Processing predictions", cli_args.total);
 
-    // NOTE: I think we only need to store cluster sizes?
     let mut predicted: HashMap<u64, usize> = HashMap::new();
-    let mut predicted_clusters: HashMap<usize, Vec<u64>> = HashMap::new();
+    let mut predicted_clusters_sizes: HashMap<usize, usize> = HashMap::new();
 
     for result in rdr.records() {
         bar.inc(1);
@@ -88,8 +87,10 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         }
 
         predicted.insert(id, thread_id);
-        let cluster = predicted_clusters.entry(thread_id).or_default();
-        cluster.push(id);
+        predicted_clusters_sizes
+            .entry(thread_id)
+            .and_modify(|c| *c += 1)
+            .or_insert(1);
     }
 
     bar.finish_at_current_pos();
@@ -97,7 +98,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     eprintln!(
         "Indexed {:?} tweets as predictions, arranged in {:?} clusters.\n",
         predicted.len(),
-        predicted_clusters.len()
+        predicted_clusters_sizes.len()
     );
 
     // Running the actual evaluation using best matching scheme
@@ -126,7 +127,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         let best = candidates
             .iter()
             .map(|(thread_id, true_positives)| {
-                let matching_cluster_size = predicted_clusters[thread_id].len();
+                let matching_cluster_size = predicted_clusters_sizes[thread_id];
 
                 let false_positives = (matching_cluster_size - true_positives) as f64;
                 let false_negatives = (truth_cluster_size - true_positives) as f64;
@@ -148,9 +149,11 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         f1 += best.2;
     }
 
-    precision /= truth_clusters.len() as f64;
-    recall /= truth_clusters.len() as f64;
-    f1 /= truth_clusters.len() as f64;
+    let n = truth_clusters.len() as f64;
+
+    precision /= n;
+    recall /= n;
+    f1 /= n;
 
     bar.finish_at_current_pos();
 
