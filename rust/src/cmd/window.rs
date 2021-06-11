@@ -17,6 +17,8 @@ pub struct Opts {
     #[clap(long, short)]
     long_format: bool,
     #[clap(long)]
+    raw: bool,
+    #[clap(long)]
     total: Option<u64>,
     #[clap(long)]
     tsv: bool,
@@ -63,7 +65,10 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     bar.finish_at_current_pos();
 
-    eprintln!("Optimal window size is: {:?}", window);
-
+    if cli_args.raw {
+        println!("{:?}", window);
+    } else {
+        eprintln!("Optimal window size is: {:?}", window);
+    }
     Ok(())
 }
