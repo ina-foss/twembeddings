@@ -100,8 +100,11 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     if let Some(merge_path) = &cli_args.merge {
         let mut rdr = csv::ReaderBuilder::new().from_path(merge_path)?;
+        let bar = acquire_progress_indicator("Indexing extraneous vocabulary", None);
 
         for result in rdr.deserialize() {
+            bar.inc(1);
+
             let record: ExtraneousVocRecord = result?;
 
             if record.token == "$" {
@@ -110,6 +113,8 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
                 document_frequencies.add_extraneous_token(record.token, record.df);
             }
         }
+
+        bar.finish_at_current_pos();
     }
 
     let mut rdr = csv::ReaderBuilder::new()
