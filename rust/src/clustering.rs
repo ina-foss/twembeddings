@@ -51,7 +51,7 @@ impl ClusteringBuilder {
         self
     }
 
-    pub fn build(self) -> Clustering {
+    pub fn build(&self) -> Clustering {
         let mut inverted_index: Vec<VecDeque<usize>> = Vec::with_capacity(self.voc_size);
 
         for _ in 0..self.voc_size {
