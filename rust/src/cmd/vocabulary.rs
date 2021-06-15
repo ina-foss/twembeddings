@@ -133,7 +133,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     let tokenizer = acquire_tokenizer();
 
-    let mutex = Mutex::new(document_frequencies);
+    let mutex = Mutex::new(&mut document_frequencies);
 
     rdr.records()
         .par_bridge()
@@ -155,7 +155,6 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     bar.finish_at_current_pos();
 
-    let document_frequencies = mutex.into_inner()?;
     let doc_count = document_frequencies.doc_count();
     let voc_size = document_frequencies.voc_size();
 
