@@ -67,7 +67,8 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         window += day_count;
     }
 
-    let window = ((window as f64) / (days.len() as f64)).floor() as usize;
+    let mut window = ((window as f64) / (days.len() as f64)).floor() as usize;
+    window /= 2;
 
     bar.finish_at_current_pos();
 
