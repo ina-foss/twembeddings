@@ -15,19 +15,17 @@ struct ExtraneousVocRecord {
     df: usize,
 }
 
-// NOTE: it is written as 10 in the original implementation but the condition
-// used with it makes it actually 11 conceptually.
-const DF_MIN: usize = 11;
-
 struct DocumentFrequencies {
     counter: HashMap<String, usize>,
+    min_df: usize,
     total: usize,
 }
 
 impl DocumentFrequencies {
-    pub fn new() -> DocumentFrequencies {
+    pub fn new(min_df: usize) -> DocumentFrequencies {
         DocumentFrequencies {
             counter: HashMap::new(),
+            min_df,
             total: 0,
         }
     }
@@ -62,24 +60,23 @@ impl DocumentFrequencies {
             .or_insert(df);
     }
 
-    pub fn into_vocab(self) -> impl Iterator<Item = (String, usize, f64)> {
+    pub fn sorted_vocab(&self) -> Vec<(&String, usize, f64)> {
         let mut dfs = self
             .counter
-            .into_iter()
-            .map(|(token, count)| (count, token))
-            .collect::<Vec<(usize, String)>>();
+            .iter()
+            .filter(|(_, &count)| count >= self.min_df)
+            .map(|(token, count)| (*count, token))
+            .collect::<Vec<(usize, &String)>>();
 
         dfs.sort_unstable_by(|a, b| b.cmp(a));
 
-        let total = self.total;
+        dfs.iter()
+            .map(|(count, token)| {
+                let idf = 1.0 + ((self.total as f64 + 1.0) / (*count as f64 + 1.0)).ln();
 
-        dfs.into_iter()
-            .filter(|(count, _)| count >= &DF_MIN)
-            .map(move |(count, token)| {
-                let idf = 1.0 + ((total as f64 + 1.0) / (count as f64 + 1.0)).ln();
-
-                (token, count, idf)
+                (*token, *count, idf)
             })
+            .collect()
     }
 }
 
@@ -89,6 +86,10 @@ pub struct Opts {
     input: String,
     #[clap(long)]
     merge: Option<String>,
+    // NOTE: it is written as 10 in the original implementation but the condition
+    // used with it makes it actually 11 conceptually.
+    #[clap(long, default_value = "11")]
+    min_df: usize,
     #[clap(long)]
     total: Option<u64>,
     #[clap(long)]
@@ -96,7 +97,7 @@ pub struct Opts {
 }
 
 pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
-    let mut document_frequencies = DocumentFrequencies::new();
+    let mut document_frequencies = DocumentFrequencies::new(cli_args.min_df);
 
     if let Some(merge_path) = &cli_args.merge {
         let mut rdr = csv::ReaderBuilder::new().from_path(merge_path)?;
@@ -160,8 +161,8 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     let mut actual_voc_size = 0;
 
-    for (token, df, idf) in document_frequencies.into_vocab() {
-        write_csv_record!(wtr, [token, df.to_string(), idf.to_string()]);
+    for (token, df, idf) in document_frequencies.sorted_vocab() {
+        write_csv_record!(wtr, [token, &df.to_string(), &idf.to_string()]);
         actual_voc_size += 1;
     }
 
