@@ -59,8 +59,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         truth_clusters.len()
     );
 
-    let mut rdr = csv::ReaderBuilder::new()
-        .from_path(&cli_args.predicted)?;
+    let mut rdr = csv::ReaderBuilder::new().from_path(&cli_args.predicted)?;
 
     let headers = rdr.headers()?;
 

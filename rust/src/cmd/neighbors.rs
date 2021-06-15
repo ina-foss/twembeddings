@@ -27,7 +27,7 @@ pub struct Opts {
     total: Option<u64>,
     #[clap(long)]
     tsv: bool,
-    #[clap(long, short, default_value="0.7")]
+    #[clap(long, short, default_value = "0.7")]
     threshold: f64,
 }
 
@@ -64,7 +64,9 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let id_column_index = get_column_index(&headers, "id")?;
 
     let tokenizer = acquire_tokenizer();
-    let mut clustering = ClusteringBuilder::new(vocabulary.len(), cli_args.window).with_threshold(cli_args.threshold).build();
+    let mut clustering = ClusteringBuilder::new(vocabulary.len(), cli_args.window)
+        .with_threshold(cli_args.threshold)
+        .build();
 
     write_csv_record!(wtr, ["id", "nearest_neighbor", "thread_id", "distance"]);
 
