@@ -30,3 +30,7 @@ pub fn vectorize(
 
     vector
 }
+
+pub fn filter_irrelevant_vector(vector: &Vec<(usize, f64)>, threshold: f64) -> bool {
+    vector.iter().all(|(_, w)| *w < threshold)
+}
