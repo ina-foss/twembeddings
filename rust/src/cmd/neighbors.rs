@@ -21,14 +21,16 @@ struct VocRecord {
 pub struct Opts {
     voc_input: String,
     input: String,
-    #[clap(short, long)]
-    window: usize,
+    #[clap(long, default_value = "5")]
+    query_size: u8,
     #[clap(long)]
     total: Option<u64>,
-    #[clap(long)]
-    tsv: bool,
     #[clap(long, short, default_value = "0.7")]
     threshold: f64,
+    #[clap(long)]
+    tsv: bool,
+    #[clap(short, long)]
+    window: usize,
 }
 
 pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
@@ -66,6 +68,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let tokenizer = acquire_tokenizer();
     let mut clustering = ClusteringBuilder::new(vocabulary.len(), cli_args.window)
         .with_threshold(cli_args.threshold)
+        .with_query_size(cli_args.query_size)
         .build();
 
     write_csv_record!(wtr, ["id", "nearest_neighbor", "thread_id", "distance"]);
