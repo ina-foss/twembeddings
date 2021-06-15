@@ -5,8 +5,15 @@ use std::sync::Mutex;
 
 use clap::Clap;
 use rayon::prelude::*;
+use serde::Deserialize;
 
 use crate::cli_utils::{acquire_progress_indicator, acquire_tokenizer, get_column_index};
+
+#[derive(Debug, Deserialize)]
+struct ExtraneousVocRecord {
+    token: String,
+    df: usize,
+}
 
 // NOTE: it is written as 10 in the original implementation but the condition
 // used with it makes it actually 11 conceptually.
@@ -44,6 +51,17 @@ impl DocumentFrequencies {
         }
     }
 
+    pub fn add_extraneous_doc_count(&mut self, count: usize) {
+        self.total += count;
+    }
+
+    pub fn add_extraneous_token(&mut self, token: String, df: usize) {
+        self.counter
+            .entry(token)
+            .and_modify(|x| *x += df)
+            .or_insert(df);
+    }
+
     pub fn into_vocab(self) -> impl Iterator<Item = (String, usize, f64)> {
         let mut dfs = self
             .counter
@@ -70,12 +88,30 @@ impl DocumentFrequencies {
 pub struct Opts {
     input: String,
     #[clap(long)]
+    merge: Option<String>,
+    #[clap(long)]
     total: Option<u64>,
     #[clap(long)]
     tsv: bool,
 }
 
 pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
+    let mut document_frequencies = DocumentFrequencies::new();
+
+    if let Some(merge_path) = &cli_args.merge {
+        let mut rdr = csv::ReaderBuilder::new().from_path(merge_path)?;
+
+        for result in rdr.deserialize() {
+            let record: ExtraneousVocRecord = result?;
+
+            if record.token == "$" {
+                document_frequencies.add_extraneous_doc_count(record.df);
+            } else {
+                document_frequencies.add_extraneous_token(record.token, record.df);
+            }
+        }
+    }
+
     let mut rdr = csv::ReaderBuilder::new()
         .delimiter(if cli_args.tsv { b'\t' } else { b',' })
         .from_path(&cli_args.input)?;
@@ -90,7 +126,6 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let text_column_index = get_column_index(&headers, "text")?;
 
     let tokenizer = acquire_tokenizer();
-    let document_frequencies = DocumentFrequencies::new();
 
     let mutex = Mutex::new(document_frequencies);
 
