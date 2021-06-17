@@ -23,6 +23,8 @@ pub struct Opts {
     input: String,
     #[clap(long, default_value = "5")]
     query_size: u8,
+    #[clap(long, default_value = "64")]
+    max_candidates_per_dimension: usize,
     #[clap(long)]
     total: Option<u64>,
     #[clap(long, short, default_value = "0.7")]
@@ -69,6 +71,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let mut clustering = ClusteringBuilder::new(vocabulary.len(), cli_args.window)
         .with_threshold(cli_args.threshold)
         .with_query_size(cli_args.query_size)
+        .with_max_candidates_per_dimension(cli_args.max_candidates_per_dimension)
         .build();
 
     write_csv_record!(wtr, ["id", "nearest_neighbor", "thread_id", "distance"]);

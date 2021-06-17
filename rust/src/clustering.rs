@@ -15,12 +15,14 @@ pub struct ClusteringBuilder {
     threshold: f64,
     window: usize,
     query_size: u8,
+    max_candidates_per_dimension: usize,
 }
 
 pub struct Clustering {
     threshold: f64,
     window: usize,
     query_size: u8,
+    max_candidates_per_dimension: usize,
     dropped_so_far: usize,
     current_thread_id: usize,
     cosine_helper_set: SparseSet<f64>,
@@ -38,6 +40,7 @@ impl ClusteringBuilder {
             threshold: 0.7,
             window,
             query_size: 5,
+            max_candidates_per_dimension: 64,
         }
     }
 
@@ -48,6 +51,11 @@ impl ClusteringBuilder {
 
     pub fn with_query_size(&mut self, query_size: u8) -> &mut Self {
         self.query_size = query_size;
+        self
+    }
+
+    pub fn with_max_candidates_per_dimension(&mut self, max: usize) -> &mut Self {
+        self.max_candidates_per_dimension = max;
         self
     }
 
@@ -62,6 +70,7 @@ impl ClusteringBuilder {
             threshold: self.threshold,
             window: self.window,
             query_size: self.query_size,
+            max_candidates_per_dimension: self.max_candidates_per_dimension,
             dropped_so_far: 0,
             current_thread_id: 0,
             cosine_helper_set: SparseSet::with_capacity(self.voc_size),
@@ -91,7 +100,7 @@ impl Clustering {
             let deque = &mut self.inverted_index[*dim];
 
             if dim_tested < self.query_size {
-                for &candidate in deque.iter() {
+                for &candidate in deque.iter().rev().take(self.max_candidates_per_dimension) {
                     self.candidates
                         .insert(candidate - self.dropped_so_far, true);
                 }
