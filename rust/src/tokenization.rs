@@ -174,7 +174,11 @@ pub struct Tokens<'a> {
 impl<'a> Tokens<'a> {
     pub fn new(text: &str, tokenizer: &'a Tokenizer) -> Self {
         let text = strip_urls(text);
-        let text = strip_mentions(&text);
+        let text = if tokenizer.strip_mentions {
+            strip_mentions(&text)
+        } else {
+            text
+        };
         let text = unidecode(&text);
 
         Tokens {
@@ -238,12 +242,14 @@ impl<'a> Iterator for Tokens<'a> {
 
 pub struct Tokenizer {
     stoplist: HashSet<String>,
+    strip_mentions: bool,
 }
 
 impl Default for Tokenizer {
     fn default() -> Tokenizer {
         Tokenizer {
             stoplist: HashSet::new(),
+            strip_mentions: false,
         }
     }
 }
