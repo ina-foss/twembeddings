@@ -156,7 +156,7 @@ class TfIdf:
         # sort words following features_name order, absent words will be counted as 0
         count_model = CountVectorizer(binary=self.binary, vocabulary=self.features_names, tokenizer=self.tokenizer)
         if self.no_pandas:
-            return count_model.transform(data["text"])
+            return count_model.transform(data)
         return count_model.transform(data["text"].tolist())
 
     def compute_df(self, count_vectors):
