@@ -98,13 +98,14 @@ class W2V:
 
 
 class TfIdf:
-    def __init__(self, lang="fr", binary=True, tokenizer="sklearn"):
+    def __init__(self, lang="fr", binary=True, tokenizer="sklearn", no_pandas=False):
         self.df = np.array([])
         self.features_names = []
         self.n_samples = 0
         self.name = "tfidf"
         self.binary = binary
         self.tokenizer = self.custom_tokenizer if tokenizer=="fog" else None
+        self.no_pandas = no_pandas
         if lang == "fr":
             self.stop_words = STOP_WORDS_FR
         elif lang == "en":
@@ -143,7 +144,10 @@ class TfIdf:
         features_set = set(self.features_names)
         fit_model = CountVectorizer(stop_words=self.stop_words, tokenizer=self.tokenizer)
         # see https://towardsdatascience.com/hacking-scikit-learns-vectorizers-9ef26a7170af for custom analyzr/tokenizr
-        fit_model.fit(data["text"].tolist())
+        if self.no_pandas:
+            fit_model.fit(data)
+        else:
+            fit_model.fit(data["text"].tolist())
         for term in fit_model.get_feature_names():
             if term not in features_set:
                 self.features_names.append(term)
