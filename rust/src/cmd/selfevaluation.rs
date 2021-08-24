@@ -51,12 +51,17 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
             truth.insert(id, label);
             let cluster = truth_clusters.entry(label).or_default();
             cluster.push(id);
-            let pred_id: usize = record[pred_column_index].parse()?;
-            predicted.insert(id, pred_id);
-            predicted_clusters
-            .entry(pred_id)
-            .and_modify(|c| *c += 1)
-            .or_insert(1);
+
+            match record[pred_column_index].parse() {
+                Ok(pred_id)=>{
+                    predicted.insert(id, pred_id);
+                    predicted_clusters
+                    .entry(pred_id)
+                    .and_modify(|c| *c += 1)
+                    .or_insert(1);
+                },
+                _=>{}
+            }
         }
     }
 
