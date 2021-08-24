@@ -1,12 +1,11 @@
 use std::collections::HashMap;
 
-const IDF_THRESHOLD: f64 = 0.21;
-
 /// Transform tokens into a sparse normalized vector represented as tuples (dim, idf)
 /// and sorted by idf so that more discriminant dimensions appear first.
 pub fn vectorize(
     vocabulary: &HashMap<String, (usize, f64)>,
     tokens: &[String],
+    idf_threshold: f64,
 ) -> Vec<(usize, f64)> {
     let mut vector: Vec<(usize, f64)> = Vec::new();
     let mut norm = 0.0;
@@ -17,7 +16,7 @@ pub fn vectorize(
             Some((dim, w)) => {
                 norm += w * w;
                 vector.push((*dim, *w));
-                if *w >= IDF_THRESHOLD {
+                if *w >= idf_threshold {
                     is_relevant = true;
                 }
             }

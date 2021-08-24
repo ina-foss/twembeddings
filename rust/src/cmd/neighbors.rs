@@ -29,6 +29,8 @@ pub struct Opts {
     total: Option<u64>,
     #[clap(long, short, default_value = "0.7")]
     threshold: f64,
+    #[clap(long, short, default_value = "0.0")]
+    idf_threshold: f64,
     #[clap(long)]
     tsv: bool,
     #[clap(short, long)]
@@ -86,7 +88,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
         let tokens = tokenizer.unique_tokens(text_cell);
 
-        let vector = vectorize(&vocabulary, &tokens);
+        let vector = vectorize(&vocabulary, &tokens, cli_args.idf_threshold);
 
         let clustering_result = clustering.nearest_neighbor(i, tweet_id, vector);
 
