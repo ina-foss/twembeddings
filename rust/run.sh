@@ -16,18 +16,18 @@ TOTAL=`xsv count $1`
 
 echo "1. Extracting vocabulary"
 echo "------------------------"
-$TWEMBEDDINGS vocab $1 --total $TOTAL > $TMP_FOLDER/vocab.csv
+$TWEMBEDDINGS vocab $1 --total $TOTAL --tsv --merge $3 > $TMP_FOLDER/vocab.csv
 echo
 
 echo "2. Determining window size"
 echo "--------------------------"
-WINDOW=`$TWEMBEDDINGS window $1 --raw --total $TOTAL`
+WINDOW=`$TWEMBEDDINGS window $1 --raw --total $TOTAL --tsv`
 echo "Optimal window size should be: $WINDOW"
 echo
 
 echo "3. Applying clustering algorithm"
 echo "--------------------------------"
-$TWEMBEDDINGS nn $TMP_FOLDER/vocab.csv $1 -w $WINDOW --total $TOTAL > $TMP_FOLDER/nn.csv
+$TWEMBEDDINGS nn $TMP_FOLDER/vocab.csv $1 -w $WINDOW --total $TOTAL --tsv --threshold 0.6 > $TMP_FOLDER/nn.csv
 echo
 
 echo "4. Evaluating"

@@ -53,14 +53,14 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
             cluster.push(id);
 
             match record[pred_column_index].parse() {
-                Ok(pred_id)=>{
+                Ok(pred_id) => {
                     predicted.insert(id, pred_id);
                     predicted_clusters
-                    .entry(pred_id)
-                    .and_modify(|c| *c += 1)
-                    .or_insert(1);
-                },
-                _=>{}
+                        .entry(pred_id)
+                        .and_modify(|c| *c += 1)
+                        .or_insert(1);
+                }
+                _ => {}
             }
         }
     }
@@ -73,7 +73,6 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         truth_clusters.len(),
         predicted_clusters.len()
     );
-
 
     // Running the actual evaluation using best matching scheme
     let bar = acquire_progress_indicator("Running evaluation", Some(truth_clusters.len() as u64));
