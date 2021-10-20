@@ -77,7 +77,16 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         .with_max_candidates_per_dimension(cli_args.max_candidates_per_dimension)
         .build();
 
-    write_csv_record!(wtr, ["created_at", "id", "nearest_neighbor", "thread_id", "distance"]);
+    write_csv_record!(
+        wtr,
+        [
+            "created_at",
+            "id",
+            "nearest_neighbor",
+            "thread_id",
+            "distance"
+        ]
+    );
 
     for (i, result) in rdr.records().enumerate() {
         bar.inc(1);
