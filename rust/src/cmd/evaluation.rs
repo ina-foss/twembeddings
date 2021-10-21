@@ -1,10 +1,13 @@
+use chrono::NaiveDateTime;
+use clap::Clap;
 use std::boxed::Box;
+use std::cmp;
 use std::collections::HashMap;
 use std::error::Error;
 
-use clap::Clap;
-
 use crate::cli_utils::{acquire_progress_indicator, get_column_index};
+
+const REGULAR_DATE_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
 
 #[derive(Clap, Debug)]
 #[clap(about = "Evaluate a clustering result.")]
@@ -65,11 +68,15 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     let id_column_index = get_column_index(&headers, "id")?;
     let thread_column_index = get_column_index(&headers, "thread_id")?;
+    let date_column_index = get_column_index(&headers, "created_at")?;
 
     let bar = acquire_progress_indicator("Processing predictions", cli_args.total);
 
     let mut predicted: HashMap<u64, usize> = HashMap::new();
-    let mut predicted_clusters_sizes: HashMap<usize, usize> = HashMap::new();
+    let mut predicted_clusters_sizes: HashMap<usize, (usize, String, String)> = HashMap::new();
+
+    let mut first_day: String = String::new();
+    let mut last_day: String = String::new();
 
     for result in rdr.records() {
         bar.inc(1);
@@ -78,7 +85,11 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
         let id: u64 = record[id_column_index].parse()?;
         let thread_id: usize = record[thread_column_index].parse()?;
-
+        let tweet_date: String = record[date_column_index].to_string();
+        if bar.position() == 1 {
+            first_day = tweet_date.clone();
+        }
+        last_day = tweet_date.clone();
         // We don't consider extraneous tweets
         if !truth.contains_key(&id) {
             continue;
@@ -87,8 +98,8 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         predicted.insert(id, thread_id);
         predicted_clusters_sizes
             .entry(thread_id)
-            .and_modify(|c| *c += 1)
-            .or_insert(1);
+            .and_modify(|e| *e = (e.0 + 1, e.1.clone(), tweet_date.clone()))
+            .or_insert((1, tweet_date.clone(), tweet_date.clone()));
     }
 
     bar.finish_at_current_pos();
@@ -97,6 +108,66 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         "Indexed {:?} tweets as predictions, arranged in {:?} clusters.\n",
         predicted.len(),
         predicted_clusters_sizes.len()
+    );
+
+    // Producing statistics about the length of events
+
+    let bar = acquire_progress_indicator(
+        "Running descriptive statistics",
+        Some(predicted_clusters_sizes.len() as u64),
+    );
+
+    let mut max_duration = 0;
+    let mut min_duration = 0;
+    let mut sum_duration = 0;
+    let mut events_starting_on_first_day_count = 0;
+    let mut events_ending_on_last_day_count = 0;
+    let mut events_covering_whole_period_count = 0;
+
+    for (_count, first_tweet_date, last_tweet_date) in predicted_clusters_sizes.values() {
+        bar.inc(1);
+        if first_tweet_date == &first_day {
+            events_starting_on_first_day_count += 1;
+            if last_tweet_date == &last_day {
+                events_covering_whole_period_count += 1;
+            }
+        }
+        if last_tweet_date == &last_day {
+            events_ending_on_last_day_count += 1;
+        }
+
+        let first_datetime = NaiveDateTime::parse_from_str(first_tweet_date, REGULAR_DATE_FORMAT)
+            .or(Err("Unknown date format!"))?;
+        let last_datetime = NaiveDateTime::parse_from_str(last_tweet_date, REGULAR_DATE_FORMAT)
+            .or(Err("Unknown date format!"))?;
+        let duration = last_datetime
+            .signed_duration_since(first_datetime)
+            .num_hours();
+        max_duration = cmp::max(max_duration, duration);
+        min_duration = cmp::min(min_duration, duration);
+        sum_duration += duration;
+    }
+
+    bar.finish_at_current_pos();
+
+    eprintln!("Stats:");
+    eprintln!("  - Min event length: {:?} hours", min_duration);
+    eprintln!("  - Max event length: {:?} hours", max_duration);
+    eprintln!(
+        "  - Mean event length: {:?} hours",
+        sum_duration / predicted_clusters_sizes.len() as i64
+    );
+    eprintln!(
+        "  - Events starting on 1st day: {:?}",
+        events_starting_on_first_day_count
+    );
+    eprintln!(
+        "  - Events ending on last day:    {:?}",
+        events_ending_on_last_day_count
+    );
+    eprintln!(
+        "  - Events covering the whole period:  {:?} \n",
+        events_covering_whole_period_count
     );
 
     // Running the actual evaluation using best matching scheme
@@ -139,7 +210,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         let best = candidates
             .iter()
             .map(|(thread_id, true_positives)| {
-                let matching_cluster_size = predicted_clusters_sizes[thread_id];
+                let matching_cluster_size = predicted_clusters_sizes[thread_id].0;
 
                 let false_positives = (matching_cluster_size - true_positives) as f64;
                 let false_negatives = (truth_cluster_size - true_positives) as f64;
