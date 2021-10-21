@@ -379,7 +379,7 @@ mod test {
 
         assert_eq!(
         default_tokenizer.tokenize("Hello World, this is I the élémental @Yomgui http://lemonde.fr type looooool! #Whatever").collect::<Vec<String>>(),
-        vec!["hello", "world", "this", "is", "the", "elemental", "type", "loool", "whatever"]
+        vec!["hello", "world", "this", "is", "the", "elemental", "yomgui", "type", "loool", "whatever"]
     );
 
         assert_eq!(
