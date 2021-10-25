@@ -118,7 +118,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     );
 
     let mut max_duration = 0;
-    let mut min_duration = 0;
+    let mut min_duration = 1000;
     let mut sum_duration = 0;
     let mut events_starting_on_first_day_count = 0;
     let mut events_ending_on_last_day_count = 0;
@@ -149,25 +149,25 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     }
 
     bar.finish_at_current_pos();
-
+    let nb_clusters = predicted_clusters_sizes.len() as f64;
     eprintln!("Stats:");
     eprintln!("  - Min event length: {:?} hours", min_duration);
     eprintln!("  - Max event length: {:?} hours", max_duration);
     eprintln!(
-        "  - Mean event length: {:?} hours",
-        sum_duration / predicted_clusters_sizes.len() as i64
+        "  - Mean event length: {:.4} hours",
+        (sum_duration as f64) / nb_clusters
     );
     eprintln!(
-        "  - Events starting on 1st day: {:?}",
-        events_starting_on_first_day_count
+        "  - % events starting on 1st day: {:.4}",
+        (events_starting_on_first_day_count as f64) / nb_clusters
     );
     eprintln!(
-        "  - Events ending on last day:    {:?}",
-        events_ending_on_last_day_count
+        "  - % events ending on last day:    {:.4}",
+        (events_ending_on_last_day_count as f64) / nb_clusters
     );
     eprintln!(
-        "  - Events covering the whole period:  {:?} \n",
-        events_covering_whole_period_count
+        "  - % events covering the whole period:  {:.4} \n",
+        events_covering_whole_period_count as f64 / nb_clusters
     );
 
     // Running the actual evaluation using best matching scheme
