@@ -114,6 +114,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "compound_duration"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "14c803d816c4ed6d0dadd5b54f7ef4f3761418fe802106b161d77476cc3c664c"
+
+[[package]]
 name = "console"
 version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -594,6 +600,7 @@ dependencies = [
  "bitintr",
  "chrono",
  "clap",
+ "compound_duration",
  "csv",
  "indicatif",
  "itertools",

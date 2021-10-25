@@ -1,5 +1,6 @@
 use chrono::NaiveDateTime;
 use clap::Clap;
+use compound_duration::format_dhms;
 use std::boxed::Box;
 use std::cmp;
 use std::collections::HashMap;
@@ -142,7 +143,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
             .or(Err("Unknown date format!"))?;
         let duration = last_datetime
             .signed_duration_since(first_datetime)
-            .num_hours();
+            .num_seconds();
         max_duration = cmp::max(max_duration, duration);
         min_duration = cmp::min(min_duration, duration);
         sum_duration += duration;
@@ -151,11 +152,11 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     bar.finish_at_current_pos();
     let nb_clusters = predicted_clusters_sizes.len() as f64;
     eprintln!("Stats:");
-    eprintln!("  - Min event length: {:?} hours", min_duration);
-    eprintln!("  - Max event length: {:?} hours", max_duration);
+    eprintln!("  - Min event length: {}", format_dhms(min_duration));
+    eprintln!("  - Max event length: {}", format_dhms(max_duration));
     eprintln!(
-        "  - Mean event length: {:.4} hours",
-        (sum_duration as f64) / nb_clusters
+        "  - Mean event length: {}",
+        format_dhms((sum_duration as f64 / nb_clusters) as usize)
     );
     eprintln!(
         "  - % events starting on 1st day: {:.4}",
