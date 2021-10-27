@@ -21,6 +21,13 @@ pub struct Opts {
     tsv: bool,
 }
 
+pub fn parse_to_day(date: &str) -> Result<String, String> {
+    let datetime =
+        NaiveDateTime::parse_from_str(date, REGULAR_DATE_FORMAT).or(Err("Unknown date format!"))?;
+    let day = datetime.format("%Y-%m-%d").to_string();
+    Ok(day)
+}
+
 pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let mut rdr = csv::ReaderBuilder::new()
         .delimiter(if cli_args.tsv { b'\t' } else { b',' })
@@ -76,8 +83,8 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let mut predicted: HashMap<u64, usize> = HashMap::new();
     let mut predicted_clusters_sizes: HashMap<usize, (usize, String, String)> = HashMap::new();
 
-    let mut first_day: String = String::new();
-    let mut last_day: String = String::new();
+    let mut start_date: String = String::new();
+    let mut end_date: String = String::new();
 
     for result in rdr.records() {
         bar.inc(1);
@@ -88,9 +95,9 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         let thread_id: usize = record[thread_column_index].parse()?;
         let tweet_date: String = record[date_column_index].to_string();
         if bar.position() == 1 {
-            first_day = tweet_date.clone();
+            start_date = tweet_date.clone();
         }
-        last_day = tweet_date.clone();
+        end_date = tweet_date.clone();
         // We don't consider extraneous tweets
         if !truth.contains_key(&id) {
             continue;
@@ -118,23 +125,25 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         Some(predicted_clusters_sizes.len() as u64),
     );
 
+    let start_day = parse_to_day(&start_date)?;
+    let end_day = parse_to_day(&end_date)?;
     let mut max_duration = 0;
     let mut min_duration = 1000;
     let mut sum_duration = 0;
-    let mut events_starting_on_first_day_count = 0;
-    let mut events_ending_on_last_day_count = 0;
+    let mut events_starting_on_start_date_count = 0;
+    let mut events_ending_on_end_date_count = 0;
     let mut events_covering_whole_period_count = 0;
 
     for (_count, first_tweet_date, last_tweet_date) in predicted_clusters_sizes.values() {
         bar.inc(1);
-        if first_tweet_date == &first_day {
-            events_starting_on_first_day_count += 1;
-            if last_tweet_date == &last_day {
+        if parse_to_day(&first_tweet_date)? == start_day {
+            events_starting_on_start_date_count += 1;
+            if parse_to_day(&last_tweet_date)? == end_day {
                 events_covering_whole_period_count += 1;
             }
         }
-        if last_tweet_date == &last_day {
-            events_ending_on_last_day_count += 1;
+        if parse_to_day(&last_tweet_date)? == end_day {
+            events_ending_on_end_date_count += 1;
         }
 
         let first_datetime = NaiveDateTime::parse_from_str(first_tweet_date, REGULAR_DATE_FORMAT)
@@ -160,19 +169,19 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     );
     eprintln!(
         "  - nb events starting on 1st day: {}",
-        events_starting_on_first_day_count
+        events_starting_on_start_date_count
     );
     eprintln!(
         "  - % events starting on 1st day: {:.4}",
-        (events_starting_on_first_day_count as f64) / nb_clusters
+        (events_starting_on_start_date_count as f64) / nb_clusters
     );
     eprintln!(
         "  - nb events ending on last day: {}",
-        events_ending_on_last_day_count
+        events_ending_on_end_date_count
     );
     eprintln!(
         "  - % events ending on last day:    {:.4}",
-        (events_ending_on_last_day_count as f64) / nb_clusters
+        (events_ending_on_end_date_count as f64) / nb_clusters
     );
     eprintln!(
         "  - nb events covering the whole period: {}",
