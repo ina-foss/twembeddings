@@ -159,12 +159,24 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         format_dhms((sum_duration as f64 / nb_clusters) as usize)
     );
     eprintln!(
+        "  - nb events starting on 1st day: {}",
+        events_starting_on_first_day_count
+    );
+    eprintln!(
         "  - % events starting on 1st day: {:.4}",
         (events_starting_on_first_day_count as f64) / nb_clusters
     );
     eprintln!(
+        "  - nb events ending on last day: {}",
+        events_ending_on_last_day_count
+    );
+    eprintln!(
         "  - % events ending on last day:    {:.4}",
         (events_ending_on_last_day_count as f64) / nb_clusters
+    );
+    eprintln!(
+        "  - nb events covering the whole period: {}",
+        events_covering_whole_period_count
     );
     eprintln!(
         "  - % events covering the whole period:  {:.4} \n",
