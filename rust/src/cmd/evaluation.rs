@@ -133,9 +133,14 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let mut events_starting_on_start_date_count = 0;
     let mut events_ending_on_end_date_count = 0;
     let mut events_covering_whole_period_count = 0;
+    let mut nb_clusters = 0;
 
-    for (_count, first_tweet_date, last_tweet_date) in predicted_clusters_sizes.values() {
+    for (count, first_tweet_date, last_tweet_date) in predicted_clusters_sizes.values() {
         bar.inc(1);
+        if count <= &1 {
+            continue
+        };
+        nb_clusters += 1;
         if parse_to_day(&first_tweet_date)? == start_day {
             events_starting_on_start_date_count += 1;
             if parse_to_day(&last_tweet_date)? == end_day {
@@ -159,13 +164,13 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     }
 
     bar.finish_at_current_pos();
-    let nb_clusters = predicted_clusters_sizes.len() as f64;
     eprintln!("Stats:");
+    eprintln!("  - Nb events bigger than 1 tweet: {}", nb_clusters);
     eprintln!("  - Min event length: {}", format_dhms(min_duration));
     eprintln!("  - Max event length: {}", format_dhms(max_duration));
     eprintln!(
         "  - Mean event length: {}",
-        format_dhms((sum_duration as f64 / nb_clusters) as usize)
+        format_dhms((sum_duration as f64 / nb_clusters as f64) as usize)
     );
     eprintln!(
         "  - nb events starting on 1st day: {}",
@@ -173,7 +178,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     );
     eprintln!(
         "  - % events starting on 1st day: {:.4}",
-        (events_starting_on_start_date_count as f64) / nb_clusters
+        (events_starting_on_start_date_count as f64) / (nb_clusters as f64)
     );
     eprintln!(
         "  - nb events ending on last day: {}",
@@ -181,7 +186,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     );
     eprintln!(
         "  - % events ending on last day:    {:.4}",
-        (events_ending_on_end_date_count as f64) / nb_clusters
+        (events_ending_on_end_date_count as f64) / (nb_clusters as f64)
     );
     eprintln!(
         "  - nb events covering the whole period: {}",
@@ -189,7 +194,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     );
     eprintln!(
         "  - % events covering the whole period:  {:.4} \n",
-        events_covering_whole_period_count as f64 / nb_clusters
+        events_covering_whole_period_count as f64 / (nb_clusters as f64)
     );
 
     // Running the actual evaluation using best matching scheme
