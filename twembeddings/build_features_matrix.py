@@ -3,6 +3,8 @@ import argparse
 import logging
 import pandas as pd
 from .embeddings import TfIdf, W2V, BERT, SBERT, Elmo, ResNetLayer, DenseNetLayer, USE
+from .embeddings import TOKEN_PATTERN
+from .stop_words import STOP_WORDS_FR, STOP_WORDS_EN
 from scipy.sparse import issparse, save_npz, load_npz
 import numpy as np
 import os
@@ -10,8 +12,10 @@ import re
 import csv
 from unidecode import unidecode
 from datetime import datetime, timedelta
+from collections import deque, defaultdict
+import math
 
-__all__ = ['build_matrix', 'load_dataset', 'load_matrix']
+__all__ = ['build_matrix', 'load_dataset', 'load_matrix', 'save_tokens_JLH']
 
 TWITTER_DATE_FORMAT = "%a %b %d %H:%M:%S +0000 %Y"
 STANDARD_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -23,11 +27,14 @@ text_embeddings = ['tfidf_all_tweets', 'tfidf_dataset', 'w2v_afp_fr', 'w2v_gnews
 image_embeddings = ["resnet", "densenet"]
 
 
-def find_date_created_at(created_at):
+def strp_date_created_at(created_at):
     if "+0000" in created_at:
-        d = datetime.strptime(created_at, TWITTER_DATE_FORMAT)
-    else:
-        d = datetime.strptime(created_at, STANDARD_DATE_FORMAT)
+        return datetime.strptime(created_at, TWITTER_DATE_FORMAT)
+    return datetime.strptime(created_at, STANDARD_DATE_FORMAT)
+
+
+def find_date_created_at(created_at):
+    d = strp_date_created_at(created_at)
     return d.strftime("%Y%m%d"), d.strftime("%H:%M:%S")
 
 
@@ -147,6 +154,74 @@ def load_dataset(dataset, annotation, text=False):
         data = data.rename(columns={"text": "text_not_formated", "text+quote+reply": "text"})
     data["date"], data["time"] = zip(*data["created_at"].apply(find_date_created_at))
     return data.drop_duplicates("id").sort_values("id").reset_index(drop=True)
+
+
+def save_tokens_JLH(inpath,
+                    outpath,
+                    window_size=12,
+                    sep=",",
+                    hashtag_split=True,
+                    remove_mentions=False,
+                    unidecode=True,
+                    lower=True
+                    ):
+    window = deque()
+    index = defaultdict(lambda: {"count": 0, "window_count": 0, "percent_max": 0})
+    stop_words = STOP_WORDS_FR + STOP_WORDS_EN
+    with open(inpath, "r") as f:
+        reader = csv.reader(f, delimiter=sep)
+        headers = next(reader)
+        positions = {}
+        for enum, h in enumerate(headers):
+            positions[h] = enum
+        for enum, row in enumerate(reader):
+            date = strp_date_created_at(row[positions["created_at"]])
+            text = format_text(row[positions["text"]],
+                               remove_mentions=remove_mentions,
+                               unidecode=unidecode,
+                               lower=lower,
+                               hashtag_split=hashtag_split
+                               )
+            tokens = [t for t in re.findall(TOKEN_PATTERN, text) if t not in stop_words]
+
+            window.append((date, tokens))
+
+            for t in tokens:
+                counts = index[t]
+                counts["count"] += 1
+                counts["window_count"] += 1
+                if counts["count"] != counts["window_count"]:
+                    percent = counts["window_count"]/len(window)
+                    counts["percent_max"] = max(percent, counts["percent_max"])
+                if counts["percent_max"] == 1:
+                    print(t, len(window), counts)
+
+            if (window[-1][0] - window[0][0]).seconds / 3600 >= window_size:
+                first_element = window.popleft()
+                tokens = first_element[1]
+                for t in tokens:
+                    counts = index[t]
+                    counts["window_count"] -= 1
+
+
+    sorted_count = sorted(index, key=lambda x:index[x]["count"], reverse=True)
+    with open(outpath, "w") as f:
+        writer = csv.writer(f)
+        writer.writerow(["token", "df", "idf", "jlh_max"])
+        for t in sorted_count:
+            counts = index[t]
+            df = counts["count"]
+            idf = math.log((enum + 1) / (df + 1)) + 1
+            # jlh = (pfore - pback)pfore/pback if pfore - pback > 0 , else 0
+            percent_background = df/enum
+            percent_foreground = counts["percent_max"]
+            difference = percent_foreground - percent_background
+            if difference > 0:
+                jlh_max = difference*percent_foreground/percent_background
+            else:
+                jlh_max = 0
+            writer.writerow([t, df, idf, jlh_max])
+    return index
 
 
 def build_matrix(**args):

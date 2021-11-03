@@ -14,6 +14,7 @@ from .stop_words import STOP_WORDS_FR, STOP_WORDS_EN
 import warnings
 
 __all__ = ['W2V', 'TfIdf', 'BERT', 'SBERT', 'Elmo', 'USE', 'DenseNetLayer', 'ResNetLayer', 'SIFT']
+TOKEN_PATTERN = re.compile(r"(?u)\b\w\w+\b")
 
 class W2V:
     def __init__(self, model, lang="fr"):
@@ -58,8 +59,7 @@ class W2V:
                 raise NameError("Available w2v models for English are w2v_twitter_fr and w2v_afp_fr")
 
     def preprocess(self, data):
-        token_pattern = re.compile(r"(?u)\b\w\w+\b")
-        text = data.text.str.findall(token_pattern)
+        text = data.text.str.findall(TOKEN_PATTERN)
         return text
 
     def compute_vectors(self, data):
