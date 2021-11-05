@@ -168,40 +168,44 @@ def save_tokens_JLH(inpath,
     window = deque()
     index = defaultdict(lambda: {"count": 0, "window_count": 0, "percent_max": 0})
     stop_words = STOP_WORDS_FR + STOP_WORDS_EN
-    with open(inpath, "r") as f:
-        reader = csv.reader(f, delimiter=sep)
-        headers = next(reader)
-        positions = {}
-        for enum, h in enumerate(headers):
-            positions[h] = enum
-        for enum, row in enumerate(reader):
-            date = strp_date_created_at(row[positions["created_at"]])
-            text = format_text(row[positions["text"]],
-                               remove_mentions=remove_mentions,
-                               unidecode=unidecode,
-                               lower=lower,
-                               hashtag_split=hashtag_split
-                               )
-            tokens = [t for t in re.findall(TOKEN_PATTERN, text) if t not in stop_words]
+    if type(inpath) != list:
+        inpath = [inpath]
+    for filepath in inpath:
+        logging.info(filepath)
+        with open(filepath, "r") as f:
+            reader = csv.reader(f, delimiter=sep)
+            headers = next(reader)
+            positions = {}
+            for enum, h in enumerate(headers):
+                positions[h] = enum
+            for enum, row in enumerate(reader):
+                date = strp_date_created_at(row[positions["created_at"]])
+                text = format_text(row[positions["text"]],
+                                   remove_mentions=remove_mentions,
+                                   unidecode=unidecode,
+                                   lower=lower,
+                                   hashtag_split=hashtag_split
+                                   )
+                tokens = [t for t in re.findall(TOKEN_PATTERN, text) if t not in stop_words]
 
-            window.append((date, tokens))
+                window.append((date, tokens))
 
-            for t in tokens:
-                counts = index[t]
-                counts["count"] += 1
-                counts["window_count"] += 1
-                if counts["count"] != counts["window_count"]:
-                    percent = counts["window_count"]/len(window)
-                    counts["percent_max"] = max(percent, counts["percent_max"])
-                if counts["percent_max"] == 1:
-                    print(t, len(window), counts)
-
-            if (window[-1][0] - window[0][0]).seconds / 3600 >= window_size:
-                first_element = window.popleft()
-                tokens = first_element[1]
                 for t in tokens:
                     counts = index[t]
-                    counts["window_count"] -= 1
+                    counts["count"] += 1
+                    counts["window_count"] += 1
+                    if counts["count"] != counts["window_count"]:
+                        percent = counts["window_count"]/len(window)
+                        counts["percent_max"] = max(percent, counts["percent_max"])
+                    if counts["percent_max"] == 1:
+                        print(t, len(window), counts)
+
+                if (window[-1][0] - window[0][0]).seconds / 3600 >= window_size:
+                    first_element = window.popleft()
+                    tokens = first_element[1]
+                    for t in tokens:
+                        counts = index[t]
+                        counts["window_count"] -= 1
 
 
     sorted_count = sorted(index, key=lambda x:index[x]["count"], reverse=True)
