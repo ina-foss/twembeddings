@@ -168,6 +168,7 @@ def save_tokens_JLH(inpath,
     window = deque()
     index = defaultdict(lambda: {"count": 0, "window_count": 0, "percent_max": 0})
     stop_words = STOP_WORDS_FR + STOP_WORDS_EN
+    doc_count = 0
     if type(inpath) != list:
         inpath = [inpath]
     for filepath in inpath:
@@ -178,7 +179,8 @@ def save_tokens_JLH(inpath,
             positions = {}
             for enum, h in enumerate(headers):
                 positions[h] = enum
-            for enum, row in enumerate(reader):
+            for row in reader:
+                doc_count += 1
                 date = strp_date_created_at(row[positions["created_at"]])
                 text = format_text(row[positions["text"]],
                                    remove_mentions=remove_mentions,
@@ -215,9 +217,9 @@ def save_tokens_JLH(inpath,
         for t in sorted_count:
             counts = index[t]
             df = counts["count"]
-            idf = math.log((enum + 1) / (df + 1)) + 1
+            idf = math.log((doc_count + 1) / (df + 1)) + 1
             # jlh = (pfore - pback)pfore/pback if pfore - pback > 0 , else 0
-            percent_background = df/enum
+            percent_background = df/doc_count
             percent_foreground = counts["percent_max"]
             difference = percent_foreground - percent_background
             if difference > 0:
