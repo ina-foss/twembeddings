@@ -64,12 +64,6 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     bar.finish_at_current_pos();
 
-    eprintln!(
-        "Indexed {:?} labeled tweets as truth, arranged in {:?} clusters.\n",
-        truth.len(),
-        truth_clusters.len()
-    );
-
     let mut rdr = csv::ReaderBuilder::new().from_path(&cli_args.predicted)?;
 
     let headers = rdr.headers()?;
@@ -112,12 +106,6 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     bar.finish_at_current_pos();
 
-    eprintln!(
-        "Indexed {:?} tweets as predictions, arranged in {:?} clusters.\n",
-        predicted.len(),
-        predicted_clusters_sizes.len()
-    );
-
     // Producing statistics about the length of events
 
     let bar = acquire_progress_indicator(
@@ -138,7 +126,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     for (count, first_tweet_date, last_tweet_date) in predicted_clusters_sizes.values() {
         bar.inc(1);
         if count <= &1 {
-            continue
+            continue;
         };
         nb_clusters += 1;
         if parse_to_day(&first_tweet_date)? == start_day {
@@ -164,38 +152,6 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     }
 
     bar.finish_at_current_pos();
-    eprintln!("Stats:");
-    eprintln!("  - Nb events bigger than 1 tweet: {}", nb_clusters);
-    eprintln!("  - Min event length: {}", format_dhms(min_duration));
-    eprintln!("  - Max event length: {}", format_dhms(max_duration));
-    eprintln!(
-        "  - Mean event length: {}",
-        format_dhms((sum_duration as f64 / nb_clusters as f64) as usize)
-    );
-    eprintln!(
-        "  - nb events starting on 1st day: {}",
-        events_starting_on_start_date_count
-    );
-    eprintln!(
-        "  - % events starting on 1st day: {:.4}",
-        (events_starting_on_start_date_count as f64) / (nb_clusters as f64)
-    );
-    eprintln!(
-        "  - nb events ending on last day: {}",
-        events_ending_on_end_date_count
-    );
-    eprintln!(
-        "  - % events ending on last day:    {:.4}",
-        (events_ending_on_end_date_count as f64) / (nb_clusters as f64)
-    );
-    eprintln!(
-        "  - nb events covering the whole period: {}",
-        events_covering_whole_period_count
-    );
-    eprintln!(
-        "  - % events covering the whole period:  {:.4} \n",
-        events_covering_whole_period_count as f64 / (nb_clusters as f64)
-    );
 
     // Running the actual evaluation using best matching scheme
     let bar = acquire_progress_indicator("Running evaluation", Some(truth_clusters.len() as u64));
@@ -266,11 +222,35 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     f1 /= n;
 
     bar.finish_at_current_pos();
-
-    eprintln!("Results:");
-    eprintln!("  - Precision: {:?}", precision);
-    eprintln!("  - Recall:    {:?}", recall);
-    eprintln!("  - F1 score:  {:?}", f1);
+    // precision,recall,f1,nb_tweets,nb_events,nb_events_bigger_than_1,mean_duration,nb_events_first_day,%_events_first_day,nb_events_last_day,%_events_last_day,nb_events_whole,%_events_whole
+    let mut wtr = csv::Writer::from_writer(std::io::stdout());
+    write_csv_record!(
+        wtr,
+        [
+            format!("{:.3}", precision),
+            format!("{:.3}", recall),
+            format!("{:.3}", f1),
+            predicted.len().to_string(),
+            predicted_clusters_sizes.len().to_string(),
+            nb_clusters.to_string(),
+            format_dhms((sum_duration as f64 / nb_clusters as f64) as usize),
+            events_starting_on_start_date_count.to_string(),
+            format!(
+                "{:.3}",
+                (events_starting_on_start_date_count as f64) / (nb_clusters as f64)
+            ),
+            events_ending_on_end_date_count.to_string(),
+            format!(
+                "{:.3}",
+                (events_ending_on_end_date_count as f64) / (nb_clusters as f64)
+            ),
+            events_covering_whole_period_count.to_string(),
+            format!(
+                "{:.3}",
+                (events_covering_whole_period_count as f64) / (nb_clusters as f64)
+            ),
+        ]
+    );
 
     Ok(())
 }
