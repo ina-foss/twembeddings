@@ -2,7 +2,6 @@ use chrono::NaiveDateTime;
 use clap::Clap;
 use compound_duration::format_dhms;
 use std::boxed::Box;
-use std::cmp;
 use std::collections::HashMap;
 use std::error::Error;
 
@@ -75,7 +74,9 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let bar = acquire_progress_indicator("Processing predictions", cli_args.total);
 
     let mut predicted: HashMap<u64, usize> = HashMap::new();
-    let mut predicted_clusters_sizes: HashMap<usize, (usize, String, String)> = HashMap::new();
+    let mut predicted_clusters_dates: HashMap<usize, (String, String)> = HashMap::new();
+    let mut predicted_clusters_sizes: HashMap<usize, usize> = HashMap::new();
+    let mut counter = 0;
 
     let mut start_date: String = String::new();
     let mut end_date: String = String::new();
@@ -88,10 +89,17 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         let id: u64 = record[id_column_index].parse()?;
         let thread_id: usize = record[thread_column_index].parse()?;
         let tweet_date: String = record[date_column_index].to_string();
-        if bar.position() == 1 {
+        if counter == 0 {
             start_date = tweet_date.clone();
         }
+        counter += 1;
         end_date = tweet_date.clone();
+
+        predicted_clusters_dates
+            .entry(thread_id)
+            .and_modify(|e| *e = (e.1.clone(), tweet_date.clone()))
+            .or_insert((tweet_date.clone(), tweet_date.clone()));
+
         // We don't consider extraneous tweets
         if !truth.contains_key(&id) {
             continue;
@@ -100,32 +108,30 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         predicted.insert(id, thread_id);
         predicted_clusters_sizes
             .entry(thread_id)
-            .and_modify(|e| *e = (e.0 + 1, e.1.clone(), tweet_date.clone()))
-            .or_insert((1, tweet_date.clone(), tweet_date.clone()));
+            .and_modify(|c| *c += 1)
+            .or_insert(1);
     }
 
     bar.finish_at_current_pos();
 
     // Producing statistics about the length of events
 
+    let start_day = parse_to_day(&start_date)?;
+    let end_day = parse_to_day(&end_date)?;
+
     let bar = acquire_progress_indicator(
         "Running descriptive statistics",
         Some(predicted_clusters_sizes.len() as u64),
     );
-
-    let start_day = parse_to_day(&start_date)?;
-    let end_day = parse_to_day(&end_date)?;
-    let mut max_duration = 0;
-    let mut min_duration = 1000;
     let mut sum_duration = 0;
     let mut events_starting_on_start_date_count = 0;
     let mut events_ending_on_end_date_count = 0;
     let mut events_covering_whole_period_count = 0;
     let mut nb_clusters = 0;
 
-    for (count, first_tweet_date, last_tweet_date) in predicted_clusters_sizes.values() {
+    for (first_tweet_date, last_tweet_date) in predicted_clusters_dates.values() {
         bar.inc(1);
-        if count <= &1 {
+        if first_tweet_date == last_tweet_date {
             continue;
         };
         nb_clusters += 1;
@@ -146,8 +152,6 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         let duration = last_datetime
             .signed_duration_since(first_datetime)
             .num_seconds();
-        max_duration = cmp::max(max_duration, duration);
-        min_duration = cmp::min(min_duration, duration);
         sum_duration += duration;
     }
 
@@ -193,7 +197,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         let best = candidates
             .iter()
             .map(|(thread_id, true_positives)| {
-                let matching_cluster_size = predicted_clusters_sizes[thread_id].0;
+                let matching_cluster_size = predicted_clusters_sizes[thread_id];
 
                 let false_positives = (matching_cluster_size - true_positives) as f64;
                 let false_negatives = (truth_cluster_size - true_positives) as f64;
@@ -230,8 +234,8 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
             format!("{:.3}", precision),
             format!("{:.3}", recall),
             format!("{:.3}", f1),
-            predicted.len().to_string(),
-            predicted_clusters_sizes.len().to_string(),
+            counter.to_string(),
+            predicted_clusters_dates.len().to_string(),
             nb_clusters.to_string(),
             format_dhms((sum_duration as f64 / nb_clusters as f64) as usize),
             events_starting_on_start_date_count.to_string(),
