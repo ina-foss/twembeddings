@@ -74,8 +74,8 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let bar = acquire_progress_indicator("Processing predictions", cli_args.total);
 
     let mut predicted: HashMap<u64, usize> = HashMap::new();
-    let mut predicted_clusters_dates: HashMap<usize, (String, String)> = HashMap::new();
-    let mut predicted_clusters_sizes: HashMap<usize, usize> = HashMap::new();
+    let mut predicted_clusters_dates: HashMap<usize, (usize, usize, String, String)> =
+        HashMap::new();
     let mut counter = 0;
 
     let mut start_date: String = String::new();
@@ -95,21 +95,18 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         counter += 1;
         end_date = tweet_date.clone();
 
-        predicted_clusters_dates
-            .entry(thread_id)
-            .and_modify(|e| *e = (e.1.clone(), tweet_date.clone()))
-            .or_insert((tweet_date.clone(), tweet_date.clone()));
-
-        // We don't consider extraneous tweets
-        if !truth.contains_key(&id) {
-            continue;
+        if truth.contains_key(&id) {
+            predicted_clusters_dates
+                .entry(thread_id)
+                .and_modify(|e| *e = (e.0 + 1, e.1 + 1, e.2.clone(), tweet_date.clone()))
+                .or_insert((1, 1, tweet_date.clone(), tweet_date.clone()));
+            predicted.insert(id, thread_id);
+        } else {
+            predicted_clusters_dates
+                .entry(thread_id)
+                .and_modify(|e| *e = (e.0, e.1 + 1, e.2.clone(), tweet_date.clone()))
+                .or_insert((0, 1, tweet_date.clone(), tweet_date.clone()));
         }
-
-        predicted.insert(id, thread_id);
-        predicted_clusters_sizes
-            .entry(thread_id)
-            .and_modify(|c| *c += 1)
-            .or_insert(1);
     }
 
     bar.finish_at_current_pos();
@@ -121,7 +118,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     let bar = acquire_progress_indicator(
         "Running descriptive statistics",
-        Some(predicted_clusters_sizes.len() as u64),
+        Some(predicted_clusters_dates.len() as u64),
     );
     let mut sum_duration = 0;
     let mut events_starting_on_start_date_count = 0;
@@ -129,11 +126,13 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let mut events_covering_whole_period_count = 0;
     let mut nb_clusters = 0;
 
-    for (first_tweet_date, last_tweet_date) in predicted_clusters_dates.values() {
+    for (_nb_annotated_tweeets, nb_tweets, first_tweet_date, last_tweet_date) in
+        predicted_clusters_dates.values()
+    {
         bar.inc(1);
-        if first_tweet_date == last_tweet_date {
+        if nb_tweets <= &1 {
             continue;
-        };
+        }
         nb_clusters += 1;
         if parse_to_day(&first_tweet_date)? == start_day {
             events_starting_on_start_date_count += 1;
@@ -197,7 +196,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         let best = candidates
             .iter()
             .map(|(thread_id, true_positives)| {
-                let matching_cluster_size = predicted_clusters_sizes[thread_id];
+                let matching_cluster_size = predicted_clusters_dates[thread_id].0;
 
                 let false_positives = (matching_cluster_size - true_positives) as f64;
                 let false_negatives = (truth_cluster_size - true_positives) as f64;
