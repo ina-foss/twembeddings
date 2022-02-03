@@ -16,7 +16,7 @@ TOTAL=`xsv count $1`
 
 echo "1. Extracting vocabulary"
 echo "------------------------"
-$TWEMBEDDINGS vocab $1 --total $TOTAL --tsv --merge $3 > $TMP_FOLDER/vocab.csv
+$TWEMBEDDINGS vocab $1 --total $TOTAL --tsv > $TMP_FOLDER/vocab.csv
 echo
 
 echo "2. Determining window size"

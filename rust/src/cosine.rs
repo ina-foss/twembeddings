@@ -16,14 +16,22 @@ pub fn sparse_dot_product_distance_with_helper(
     helper: &SparseSet<f64>,
     other: &[(usize, f64)],
 ) -> f64 {
+    let min_nb_words = 1;
     let mut product = 0.0;
+    let mut dim_count = 0;
 
     for (dim, w2) in other {
         let w1 = helper.get(*dim).unwrap_or(&0.0);
+        let matching_dim = if w1 > &0.0 { 1 } else { 0 };
+        dim_count += matching_dim;
         product += w1 * w2;
     }
 
-    product = 1.0 - product;
+    product = if dim_count > min_nb_words {
+        1.0 - product
+    } else {
+        1.0
+    };
 
     // Precision error
     // TODO: need a larger epsilon?
