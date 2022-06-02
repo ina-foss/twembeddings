@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::error::Error;
 use std::collections::HashMap;
 
 use csv::Writer;
@@ -84,8 +85,15 @@ pub fn acquire_progress_indicator(
     bar
 }
 
-pub fn acquire_tokenizer() -> Tokenizer {
+pub fn acquire_tokenizer(stopwords: Option<&String>) -> Result<Tokenizer, Box<dyn Error>> {
     let mut tokenizer = Tokenizer::new();
+
+    if let Some(stopwords_path) = stopwords {
+        let mut rdr = csv::ReaderBuilder::new().from_path(stopwords_path)?;
+        for record in rdr.deserialize::<String>() {
+            tokenizer.add_stop_word(&record?);
+        }
+    }
 
     for stopword in STOP_WORDS_FR.iter() {
         tokenizer.add_stop_word(stopword);
@@ -95,5 +103,5 @@ pub fn acquire_tokenizer() -> Tokenizer {
         tokenizer.add_stop_word(stopword);
     }
 
-    tokenizer
+    Ok(tokenizer)
 }

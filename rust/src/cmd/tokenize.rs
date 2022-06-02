@@ -41,7 +41,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     let text_column_index = get_column_index(&headers, "text")?;
 
-    let tokenizer = acquire_tokenizer();
+    let tokenizer = acquire_tokenizer(None)?;
     let reordered_writer = ReorderedWriter::new(&mut wtr);
     let mutex = Mutex::new(reordered_writer);
 

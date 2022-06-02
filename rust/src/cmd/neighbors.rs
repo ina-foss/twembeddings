@@ -70,7 +70,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let date_column_index = get_column_index(&headers, "created_at")?;
     let id_column_index = get_column_index(&headers, "id")?;
 
-    let tokenizer = acquire_tokenizer();
+    let tokenizer = acquire_tokenizer(None)?;
     let mut clustering = ClusteringBuilder::new(vocabulary.len(), cli_args.window)
         .with_threshold(cli_args.threshold)
         .with_query_size(cli_args.query_size)

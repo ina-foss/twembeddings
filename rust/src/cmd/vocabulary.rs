@@ -86,6 +86,10 @@ pub struct Opts {
     input: String,
     #[clap(long)]
     merge: Option<String>,
+    /// Path (optional) to a custom stopwords list in csv format (one word per row,
+    /// with headers). Your stopwords will be added to the default stopwords list.
+    #[clap(long)]
+    stopwords: Option<String>,
     // NOTE: it is written as 10 in the original implementation but the condition
     // used with it makes it actually 11 conceptually.
     #[clap(long, default_value = "11")]
@@ -131,7 +135,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     let text_column_index = get_column_index(&headers, "text")?;
 
-    let tokenizer = acquire_tokenizer();
+    let tokenizer = acquire_tokenizer(cli_args.stopwords.as_ref())?;
 
     let mutex = Mutex::new(&mut document_frequencies);
 
