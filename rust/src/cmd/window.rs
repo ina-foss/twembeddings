@@ -2,7 +2,8 @@ use std::boxed::Box;
 use std::collections::HashMap;
 use std::error::Error;
 
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, TimeZone};
+use chrono_tz::{Tz, UTC};
 use clap::Clap;
 
 use crate::cli_utils::{acquire_progress_indicator, get_column_index};
@@ -17,10 +18,17 @@ pub struct Opts {
     input: String,
     #[clap(long)]
     raw: bool,
+    ///Name of the column in the csv input containing the dates of the documents
+    #[clap(long, default_value = "created_at")]
+    datecol: String,
     #[clap(long)]
     total: Option<u64>,
     #[clap(long)]
     tsv: bool,
+    ///If timestamps are provided, they will be parsed as UTC timestamps, then converted to
+    ///the provided timezone. Other date formats will not be converted.
+    #[clap(long, default_value = "Europe/Paris")]
+    timezone: String,
 }
 
 // TODO: could infer window from the vocab command in fact
@@ -33,7 +41,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     let headers = rdr.headers()?;
 
-    let date_column_index = get_column_index(&headers, "created_at")?;
+    let date_column_index = get_column_index(&headers, &cli_args.datecol)?;
 
     let mut days: HashMap<String, usize> = HashMap::new();
 
@@ -44,19 +52,22 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
         let date_cell = &record[date_column_index];
 
+        let tz: Tz = cli_args.timezone.parse().or(Err("Unknown timezone"))?;
+
         // Inferring date format from the string...
-        let date_format = if date_cell.contains('+') {
-            LONG_DATE_FORMAT
+        let datetime = if date_cell.contains('+') {
+            date_from_string(date_cell, LONG_DATE_FORMAT)?
         } else if date_cell.chars().any(|c| c.is_ascii_alphabetic()) {
-            SHORT_DATE_FORMAT
+            date_from_string(date_cell, SHORT_DATE_FORMAT)?
+        } else if date_cell.contains('-') {
+            date_from_string(date_cell, REGULAR_DATE_FORMAT)?
         } else {
-            REGULAR_DATE_FORMAT
+            date_from_timestamp(date_cell, &tz)?
         };
 
-        let datetime = NaiveDateTime::parse_from_str(date_cell, date_format)
-            .or(Err("Unknown date format!"))?;
+        let local_datetime = datetime;
 
-        let day = datetime.format("%Y-%m-%d").to_string();
+        let day = local_datetime.format("%Y-%m-%d").to_string();
 
         days.entry(day).and_modify(|x| *x += 1).or_insert(1);
     }
@@ -78,4 +89,27 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         eprintln!("Optimal window size is: {:?}", window);
     }
     Ok(())
+}
+
+pub fn date_from_string(
+    date_str: &str,
+    date_format: &str,
+) -> Result<NaiveDateTime, Box<dyn Error>> {
+    let datetime =
+        NaiveDateTime::parse_from_str(date_str, date_format).or(Err("Unknown date format!"))?;
+    Ok(datetime)
+}
+
+pub fn date_from_timestamp(
+    timestamp_str: &str,
+    timezone: &Tz,
+) -> Result<NaiveDateTime, Box<dyn Error>> {
+    let datetime = NaiveDateTime::from_timestamp(
+        timestamp_str
+            .parse::<i64>()
+            .or(Err("Unknown date format!"))?,
+        0,
+    );
+    let utc_datetime = UTC.from_local_datetime(&datetime).unwrap();
+    Ok(utc_datetime.with_timezone(timezone).naive_local())
 }
