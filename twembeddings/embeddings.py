@@ -11,7 +11,6 @@ import re
 from unidecode import unidecode
 from tqdm import tqdm
 from .stop_words import STOP_WORDS_FR, STOP_WORDS_EN
-import warnings
 
 __all__ = ['W2V', 'TfIdf', 'BERT', 'SBERT', 'Elmo', 'USE', 'DenseNetLayer', 'ResNetLayer', 'SIFT']
 TOKEN_PATTERN = re.compile(r"(?u)\b\w\w+\b")
@@ -246,7 +245,7 @@ class Elmo:
         self.name = "elmo"
         if lang == "fr":
             from elmoformanylangs import Embedder
-            self.e = Embedder('/home/bmazoyer/Dev/ELMoForManyLangs/150', batch_size=32)
+            self.e = Embedder('/home/bmazoyer/Downloads/150', batch_size=64)
             self.vectors = None
         elif lang == "en":
             import tensorflow as tf
@@ -282,96 +281,21 @@ class USE:
     def __init__(self, lang="fr"):
         import tensorflow as tf
         import tensorflow_hub as hub
-        import tf_sentencepiece
         self.name = "UniversalSentenceEncoder"
-        # Graph set up.
-        g = tf.Graph()
-        with g.as_default():
-            self.text_input = tf.placeholder(dtype=tf.string, shape=[None])
-            if lang == "fr":
-                logging.info(lang)
-                embed = hub.Module("https://tfhub.dev/google/universal-sentence-encoder-multilingual/1")
-            elif lang == "en":
-                logging.info(lang)
-                embed = hub.Module("https://tfhub.dev/google/universal-sentence-encoder-large/3")
-            self.embedded_text = embed(self.text_input)
-            init_op = tf.group([tf.global_variables_initializer(), tf.tables_initializer()])
-        g.finalize()
-
-        # Initialize session.
-        self.session = tf.Session(graph=g)
-        self.session.run(init_op)
+        if lang == "fr":
+            from tensorflow_text import SentencepieceTokenizer
+            logging.info(lang)
+            self.embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder-multilingual/3")
+        elif lang == "en":
+            logging.info(lang)
+            self.embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder-large/5")
 
     def compute_vectors(self, data):
         batch_size = 64
         n = data.shape[0]
         vectors = np.zeros([n, 512])
         for i in tqdm(range(0, n, batch_size)):
-            vectors[i:min(n, i+batch_size)] = self.session.run(
-                self.embedded_text,
-                feed_dict={self.text_input: data.text[i:min(n, i+batch_size)].tolist()})
+            vectors[i:min(n, i+batch_size)] = self.embed(
+                data.text.iloc[i:min(n, i+batch_size)]
+            )
         return vectors
-
-
-class DenseNetLayer:
-
-    def __init__(self):
-        from keras.models import Model
-        from keras.applications.densenet import DenseNet121
-
-        base_model = DenseNet121(weights="imagenet", include_top=True)
-        self.featurizer = Model(inputs=base_model.input, outputs=base_model.get_layer("avg_pool").output)
-        self.name = "DenseNet"
-
-    def compute_vectors(self, image_path, batch_size=64, weight=1):
-        from keras.preprocessing import image
-        from keras.applications.densenet import preprocess_input
-        batch_gen = image.ImageDataGenerator(preprocessing_function=preprocess_input)
-        flow = batch_gen.flow_from_directory(image_path,
-                                             batch_size=batch_size,
-                                             shuffle=False,
-                                             target_size=(224, 224),
-                                             class_mode=None)
-        X = self.featurizer.predict_generator(flow, steps=len(flow.filenames)/batch_size, verbose=1)
-
-        if weight != 1:
-            X = X*weight
-
-        return X
-
-
-class ResNetLayer:
-
-    def __init__(self, ):
-        from keras.models import Model
-        from keras.applications.resnet50 import ResNet50
-
-        base_model = ResNet50(weights='imagenet', include_top=True)
-        self.featurizer = Model(inputs=base_model.input, outputs=base_model.get_layer("avg_pool").output)
-        self.name = "ResNet"
-
-    def compute_vectors(self, image_path, batch_size=64, weight=1):
-        from keras.preprocessing import image
-        from keras.applications.resnet50 import preprocess_input
-        batch_gen = image.ImageDataGenerator(preprocessing_function=preprocess_input)
-        flow = batch_gen.flow_from_directory(image_path,
-                                             batch_size=batch_size,
-                                             shuffle=False,
-                                             target_size=(224, 224),
-                                             class_mode=None)
-        X = self.featurizer.predict_generator(flow, steps=len(flow.filenames)/batch_size, verbose=1)
-
-        if weight != 1:
-            X = X*weight
-
-        return X
-
-class SIFT:
-    def __init__(self, ):
-        self.name = "sift"
-
-    def compute_vectors(self, vectors_path):
-        X = np.load(vectors_path)
-        diag = np.diag(X)
-        X = 1 / (1 + (X - np.diag(diag)))
-        return X
