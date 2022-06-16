@@ -46,10 +46,7 @@ parser.add_argument('--batch_size',
                     )
 
 parser.add_argument('--remove_mentions',
-                    choices=[0, 1],
-                    default=None,
-                    type=int,
-                    required=False
+                    action='store_true'
                     )
 
 parser.add_argument('--window',
@@ -72,10 +69,7 @@ def main(args):
         for arg in args:
             if args[arg] is not None:
                 # params from command line overwrite options.yaml file
-                if arg == "remove_mentions":
-                    params[arg] = bool(args[arg])
-                else:
-                    params[arg] = args[arg]
+                params[arg] = args[arg]
 
         params["model"] = model
         test_params(**params)
@@ -105,6 +99,7 @@ def test_params(**params):
         stats = general_statistics(y_pred)
         p, r, f1 = cluster_event_match(data, y_pred)
         data["pred"] = data["pred"].astype(int)
+        data["id"] = data["id"].astype(int)
         candidate_columns = ["date", "time", "label", "pred", "user_id_str", "id"]
         result_columns = []
         for rc in candidate_columns:
