@@ -1,16 +1,11 @@
 use std::boxed::Box;
 use std::collections::HashMap;
 use std::error::Error;
-
-use chrono::{NaiveDateTime, TimeZone};
-use chrono_tz::{Tz, UTC};
+use chrono_tz::Tz;
 use clap::Clap;
 
 use crate::cli_utils::{acquire_progress_indicator, get_column_index};
-
-const LONG_DATE_FORMAT: &str = "%a %b %d %H:%M:%S +0000 %Y";
-const SHORT_DATE_FORMAT: &str = "%a %b %d %H:%M:%S";
-const REGULAR_DATE_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
+use crate::date_utils::inferred_date;
 
 #[derive(Clap, Debug)]
 #[clap(about = "Infer the size of the window for the clustering algorithm.")]
@@ -54,18 +49,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
         let tz: Tz = cli_args.timezone.parse().or(Err("Unknown timezone"))?;
 
-        // Inferring date format from the string...
-        let datetime = if date_cell.contains('+') {
-            date_from_string(date_cell, LONG_DATE_FORMAT)?
-        } else if date_cell.chars().any(|c| c.is_ascii_alphabetic()) {
-            date_from_string(date_cell, SHORT_DATE_FORMAT)?
-        } else if date_cell.contains('-') {
-            date_from_string(date_cell, REGULAR_DATE_FORMAT)?
-        } else {
-            date_from_timestamp(date_cell, &tz)?
-        };
-
-        let local_datetime = datetime;
+        let local_datetime = inferred_date(&date_cell, &tz)?;
 
         let day = local_datetime.format("%Y-%m-%d").to_string();
 
@@ -89,27 +73,4 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         eprintln!("Optimal window size is: {:?}", window);
     }
     Ok(())
-}
-
-pub fn date_from_string(
-    date_str: &str,
-    date_format: &str,
-) -> Result<NaiveDateTime, Box<dyn Error>> {
-    let datetime =
-        NaiveDateTime::parse_from_str(date_str, date_format).or(Err("Unknown date format!"))?;
-    Ok(datetime)
-}
-
-pub fn date_from_timestamp(
-    timestamp_str: &str,
-    timezone: &Tz,
-) -> Result<NaiveDateTime, Box<dyn Error>> {
-    let datetime = NaiveDateTime::from_timestamp(
-        timestamp_str
-            .parse::<i64>()
-            .or(Err("Unknown date format!"))?,
-        0,
-    );
-    let utc_datetime = UTC.from_local_datetime(&datetime).unwrap();
-    Ok(utc_datetime.with_timezone(timezone).naive_local())
 }
