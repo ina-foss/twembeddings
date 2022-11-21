@@ -1,4 +1,4 @@
-use chrono::NaiveDateTime;
+use chrono_tz::Tz;
 use clap::Clap;
 use compound_duration::format_dhms;
 use std::boxed::Box;
@@ -6,8 +6,7 @@ use std::collections::HashMap;
 use std::error::Error;
 
 use crate::cli_utils::{acquire_progress_indicator, get_column_index};
-
-const REGULAR_DATE_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
+use crate::date_utils::inferred_date;
 
 #[derive(Clap, Debug)]
 #[clap(about = "Evaluate a clustering result.")]
@@ -18,13 +17,12 @@ pub struct Opts {
     total: Option<u64>,
     #[clap(long)]
     tsv: bool,
-}
-
-pub fn parse_to_day(date: &str) -> Result<String, String> {
-    let datetime =
-        NaiveDateTime::parse_from_str(date, REGULAR_DATE_FORMAT).or(Err("Unknown date format!"))?;
-    let day = datetime.format("%Y-%m-%d").to_string();
-    Ok(day)
+    #[clap(long, default_value = "created_at")]
+    datecol: String,
+    ///If timestamps are provided, they will be parsed as UTC timestamps, then converted to
+    ///the provided timezone. Other date formats will not be converted.
+    #[clap(long, default_value = "Europe/Paris")]
+    timezone: String,
 }
 
 pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
@@ -69,7 +67,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
     let id_column_index = get_column_index(&headers, "id")?;
     let thread_column_index = get_column_index(&headers, "thread_id")?;
-    let date_column_index = get_column_index(&headers, "created_at")?;
+    let date_column_index = get_column_index(&headers, &cli_args.datecol)?;
 
     let bar = acquire_progress_indicator("Processing predictions", cli_args.total);
 
@@ -112,9 +110,13 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     bar.finish_at_current_pos();
 
     // Producing statistics about the length of events
-
-    let start_day = parse_to_day(&start_date)?;
-    let end_day = parse_to_day(&end_date)?;
+    let tz: Tz = cli_args.timezone.parse().or(Err("Unknown timezone"))?;
+    let start_day = inferred_date(&start_date, &tz)?
+        .format("%Y-%m-%d")
+        .to_string();
+    let end_day = inferred_date(&end_date, &tz)?
+        .format("%Y-%m-%d")
+        .to_string();
 
     let bar = acquire_progress_indicator(
         "Running descriptive statistics",
@@ -134,20 +136,30 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
             continue;
         }
         nb_clusters += 1;
-        if parse_to_day(&first_tweet_date)? == start_day {
+        let inferred_last_tweet_day = inferred_date(&last_tweet_date, &tz)?
+            .format("%Y-%m-%d")
+            .to_string();
+        if inferred_date(&first_tweet_date, &tz)?
+            .format("%Y-%m-%d")
+            .to_string()
+            == start_day
+        {
             events_starting_on_start_date_count += 1;
-            if parse_to_day(&last_tweet_date)? == end_day {
+            if inferred_last_tweet_day == end_day {
                 events_covering_whole_period_count += 1;
             }
         }
-        if parse_to_day(&last_tweet_date)? == end_day {
+        if inferred_date(&last_tweet_date, &tz)?
+            .format("%Y-%m-%d")
+            .to_string()
+            == end_day
+        {
             events_ending_on_end_date_count += 1;
         }
 
-        let first_datetime = NaiveDateTime::parse_from_str(first_tweet_date, REGULAR_DATE_FORMAT)
-            .or(Err("Unknown date format!"))?;
-        let last_datetime = NaiveDateTime::parse_from_str(last_tweet_date, REGULAR_DATE_FORMAT)
-            .or(Err("Unknown date format!"))?;
+        let first_datetime =
+            inferred_date(&first_tweet_date, &tz).or(Err("Unknown date format!"))?;
+        let last_datetime = inferred_date(&last_tweet_date, &tz).or(Err("Unknown date format!"))?;
         let duration = last_datetime
             .signed_duration_since(first_datetime)
             .num_seconds();

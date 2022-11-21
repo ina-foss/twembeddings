@@ -5,10 +5,10 @@ use clap::Clap;
 
 #[macro_use]
 pub mod cli_utils;
-pub mod date_utils;
 pub mod clustering;
 pub mod cmd;
 pub mod cosine;
+pub mod date_utils;
 pub mod stop_words;
 pub mod tokenization;
 pub mod vectorization;

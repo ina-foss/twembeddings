@@ -1,8 +1,8 @@
+use chrono_tz::Tz;
+use clap::Clap;
 use std::boxed::Box;
 use std::collections::HashMap;
 use std::error::Error;
-use chrono_tz::Tz;
-use clap::Clap;
 
 use crate::cli_utils::{acquire_progress_indicator, get_column_index};
 use crate::date_utils::inferred_date;
