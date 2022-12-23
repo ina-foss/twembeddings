@@ -144,10 +144,11 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         .map(|result| {
             let record = result.expect("Could not read row!");
 
-            tokenizer.unique_tokens(
+            tokenizer.tokenize(
                 &record
                     .get(text_column_index)
                     .expect("Found a row with fewer columns than expected!"),
+                true
             )
         })
         .for_each(|tokens| {

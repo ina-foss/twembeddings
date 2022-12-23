@@ -51,10 +51,11 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         .map(|(i, result)| {
             let record = result.expect("Could not read row!");
 
-            let tokens = tokenizer.unique_tokens(
+            let tokens = tokenizer.tokenize(
                 &record
                     .get(text_column_index)
                     .expect("Found a row with fewer columns than expected!"),
+                true
             );
 
             (i, calculate_hash(&tokens), tokens)

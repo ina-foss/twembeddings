@@ -34,6 +34,8 @@ pub struct Opts {
     #[clap(long)]
     tsv: bool,
     #[clap(short, long)]
+    binary: bool,
+    #[clap(short, long)]
     window: usize,
 }
 
@@ -85,9 +87,10 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
         let text_cell = &record[text_column_index];
         let tweet_id: u64 = record[id_column_index].parse()?;
-        let tokens = tokenizer.unique_tokens(text_cell);
 
-        let vector = vectorize(&vocabulary, &tokens, cli_args.idf_threshold);
+        let tokens = tokenizer.tokenize(text_cell, cli_args.binary);
+
+        let vector = vectorize(&vocabulary, &tokens, cli_args.idf_threshold, cli_args.binary);
 
         let clustering_result = clustering.nearest_neighbor(i, tweet_id, vector);
 

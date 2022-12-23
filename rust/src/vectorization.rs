@@ -6,22 +6,46 @@ pub fn vectorize(
     vocabulary: &HashMap<String, (usize, f64)>,
     tokens: &[String],
     idf_threshold: f64,
+    binary: bool,
 ) -> Vec<(usize, f64)> {
     let mut vector: Vec<(usize, f64)> = Vec::new();
     let mut norm = 0.0;
     let mut is_relevant = false;
+    let mut term_frequency: HashMap<&String, f64> = HashMap::new();
 
-    for token in tokens {
-        match vocabulary.get(token) {
-            Some((dim, w)) => {
-                norm += w * w;
-                vector.push((*dim, *w));
-                if *w >= idf_threshold {
-                    is_relevant = true;
+
+    if binary {
+        for token in tokens {
+            match vocabulary.get(token) {
+                Some((dim, w)) => {
+                    norm += w * w;
+                    vector.push((*dim, *w));
+                    if *w >= idf_threshold {
+                        is_relevant = true;
+                    }
                 }
+                None => continue,
             }
-            None => continue,
         }
+    } else {
+        for token in tokens {
+            *term_frequency.entry(token).or_insert(0.0) += 1.0;
+        }
+    
+        for (token, tf) in term_frequency {
+            match vocabulary.get(token) {
+                Some((dim, w)) => {
+                    let tfidf = tf * w;
+                    norm += tfidf * tfidf;
+                    vector.push((*dim, tfidf));
+                    if *w >= idf_threshold {
+                        is_relevant = true;
+                    }
+                }
+                None => continue,
+            }
+        }
+        
     }
 
     if !is_relevant {

@@ -264,12 +264,12 @@ impl Tokenizer {
         self
     }
 
-    pub fn tokenize(&self, text: &str) -> Tokens {
-        Tokens::new(text, self)
-    }
-
-    pub fn unique_tokens(&self, text: &str) -> Vec<String> {
-        Tokens::new(text, self).unique().collect()
+    pub fn tokenize(&self, text: &str, unique: bool) -> Vec<String> {
+        let tokens = Tokens::new(text, self);
+        if unique {
+            return tokens.unique().collect();
+        }
+        return tokens.collect::<Vec<String>>();
     }
 }
 
@@ -378,26 +378,22 @@ mod test {
         let default_tokenizer = Tokenizer::new();
 
         assert_eq!(
-        default_tokenizer.tokenize("Hello World, this is I the élémental @Yomgui http://lemonde.fr type looooool! #Whatever").collect::<Vec<String>>(),
+        default_tokenizer.tokenize("Hello World, this is I the élémental @Yomgui http://lemonde.fr type looooool! #Whatever", false),
         vec!["hello", "world", "this", "is", "the", "elemental", "yomgui", "type", "loool", "whatever"]
     );
 
         assert_eq!(
-            default_tokenizer
-                .tokenize("Hello #EpopeeRusse! What's brewing?")
-                .collect::<Vec<String>>(),
+            default_tokenizer.tokenize("Hello #EpopeeRusse! What's brewing?,", false),
             vec!["hello", "epopee", "russe", "what", "brewing"]
         );
 
         assert_eq!(
-            default_tokenizer
-                .tokenize("Hello to this number: 400000 and this one: 34")
-                .collect::<Vec<String>>(),
+            default_tokenizer.tokenize("Hello to this number: 400000 and this one: 34", false),
             vec!["hello", "to", "this", "number", "and", "this", "one", "34"]
         );
 
         assert_eq!(
-            default_tokenizer.unique_tokens("Hello! hello bonjour hello?"),
+            default_tokenizer.tokenize("Hello! hello bonjour hello?", true),
             vec!["hello", "bonjour"]
         );
 
@@ -405,9 +401,7 @@ mod test {
         tokenizer_with_stopwords.add_stop_word("world");
 
         assert_eq!(
-            tokenizer_with_stopwords
-                .tokenize("Hello World!")
-                .collect::<Vec<String>>(),
+            tokenizer_with_stopwords.tokenize("Hello World!", false),
             vec!["hello"]
         );
     }
