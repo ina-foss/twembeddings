@@ -67,7 +67,6 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
     let headers = rdr.headers()?;
 
     let text_column_index = get_column_index(&headers, "text")?;
-    let date_column_index = get_column_index(&headers, "created_at")?;
     let id_column_index = get_column_index(&headers, "id")?;
 
     let tokenizer = acquire_tokenizer(None)?;
@@ -77,16 +76,7 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
         .with_max_candidates_per_dimension(cli_args.max_candidates_per_dimension)
         .build();
 
-    write_csv_record!(
-        wtr,
-        [
-            "created_at",
-            "id",
-            "nearest_neighbor",
-            "thread_id",
-            "distance"
-        ]
-    );
+    write_csv_record!(wtr, ["id", "nearest_neighbor", "thread_id", "distance"]);
 
     for (i, result) in rdr.records().enumerate() {
         bar.inc(1);
@@ -95,7 +85,6 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
 
         let text_cell = &record[text_column_index];
         let tweet_id: u64 = record[id_column_index].parse()?;
-        let tweet_date = &record[date_column_index];
         let tokens = tokenizer.unique_tokens(text_cell);
 
         let vector = vectorize(&vocabulary, &tokens, cli_args.idf_threshold);
@@ -106,14 +95,12 @@ pub fn run(cli_args: &Opts) -> Result<(), Box<dyn Error>> {
             wtr,
             match clustering_result.0 {
                 Some((nn_id, d)) => vec![
-                    tweet_date.to_string(),
                     tweet_id.to_string(),
                     nn_id.to_string(),
                     clustering_result.1.to_string(),
                     d.to_string()
                 ],
                 None => vec![
-                    tweet_date.to_string(),
                     tweet_id.to_string(),
                     "".to_string(),
                     clustering_result.1.to_string(),
