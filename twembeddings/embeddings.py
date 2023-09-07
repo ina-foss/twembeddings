@@ -280,36 +280,27 @@ class Elmo:
 class USE:
 
     def __init__(self, lang="fr"):
-        import tensorflow as tf
-        import tensorflow_hub as hub
-        import tf_sentencepiece
-        self.name = "UniversalSentenceEncoder"
-        # Graph set up.
-        g = tf.Graph()
-        with g.as_default():
-            self.text_input = tf.placeholder(dtype=tf.string, shape=[None])
-            if lang == "fr":
-                logging.info(lang)
-                embed = hub.Module("https://tfhub.dev/google/universal-sentence-encoder-multilingual/1")
-            elif lang == "en":
-                logging.info(lang)
-                embed = hub.Module("https://tfhub.dev/google/universal-sentence-encoder-large/3")
-            self.embedded_text = embed(self.text_input)
-            init_op = tf.group([tf.global_variables_initializer(), tf.tables_initializer()])
-        g.finalize()
 
-        # Initialize session.
-        self.session = tf.Session(graph=g)
-        self.session.run(init_op)
+        import tensorflow_hub as hub
+        # tensorflow_text seems unused but necessary to run the hub.load
+        import tensorflow_text
+
+        self.name = "UniversalSentenceEncoder"
+
+        # todo: prevent warning message if no cuda with os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+        if lang == "en":
+            self.embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder-large/5")
+        else:
+            self.embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder-multilingual/3")
+
+
 
     def compute_vectors(self, data):
         batch_size = 64
         n = data.shape[0]
         vectors = np.zeros([n, 512])
         for i in tqdm(range(0, n, batch_size)):
-            vectors[i:min(n, i+batch_size)] = self.session.run(
-                self.embedded_text,
-                feed_dict={self.text_input: data.text[i:min(n, i+batch_size)].tolist()})
+            vectors[i:min(n, i+batch_size)] = self.embed(data.text[i:min(n, i+batch_size)])
         return vectors
 
 

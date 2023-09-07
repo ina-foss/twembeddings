@@ -10,6 +10,8 @@ import numpy as np
 import os
 import re
 import csv
+import tensorflow_hub as hub
+import tensorflow_text
 from unidecode import unidecode
 from datetime import datetime, timedelta
 from collections import deque, defaultdict
@@ -316,7 +318,14 @@ def build_matrix(**args):
                                     lower=False,
                                     hashtag_split=True
                                     )
-        vectorizer = USE()
+
+        # todo: prevent warning message if no cuda with os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+        if args["lang"] == "en":
+            embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder-large/5")
+        else:
+            embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder-multilingual/3")
+
+        vectorizer = USE(embed)
         X = vectorizer.compute_vectors(data)
 
     elif args["model"] == "resnet":
@@ -339,7 +348,7 @@ if __name__ == '__main__':
                         required=False,
                         default="event2018",
                         help="""
-                            - 'event2018' : Event2018 dataset;  
+                            - 'event2018' : Event2018 dataset;
                             - 'event2018_image' : all tweets in Event2018 that contain an image. We include tweets that
                         quote an image or reply to an image;
                             - any other value should be the path to your own dataset in tsv format;
@@ -360,14 +369,14 @@ if __name__ == '__main__':
     parser.add_argument("--svd", dest="svd", default=False,
                         action="store_true",
                         help="""
-                        Only for TfIdf embedding: create a dense matrix of shape (n_documents, 100) 
+                        Only for TfIdf embedding: create a dense matrix of shape (n_documents, 100)
                         using Singular Value Decomposition
                         """)
     parser.add_argument('--binary', dest="binary", default=True,
                         action="store_false",
                         help="""
-                        Only for TfIdf embedding: if True, all non-zero term counts are set to 1. 
-                        This does not mean outputs will have only 0/1 values, only that the tf term 
+                        Only for TfIdf embedding: if True, all non-zero term counts are set to 1.
+                        This does not mean outputs will have only 0/1 values, only that the tf term
                         in tf-idf is binary.
                         """)
 
@@ -387,7 +396,7 @@ if __name__ == '__main__':
                         action="store_true",
                         help="""
                         Only if --dataset argument is set to "event2018" or "event2018_image"
-                        Use the text of the tweet + the text of the tweet quoted or replied to 
+                        Use the text of the tweet + the text of the tweet quoted or replied to
                         """)
     parser.add_argument('--annotation',
                         required=False,
@@ -395,8 +404,8 @@ if __name__ == '__main__':
                         choices=["annotated", "examined"],
                         help="""
                         Only if --dataset argument is set to "default" or "has_image"
-                            - annotated : (default) all tweets annotated as related to an event; 
-                            - examined : all tweets annotated as related or unrelated to an event; 
+                            - annotated : (default) all tweets annotated as related to an event;
+                            - examined : all tweets annotated as related or unrelated to an event;
                         """
                         # - no : all tweets in the dataset regardless of annotation
                         )
