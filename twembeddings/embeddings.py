@@ -148,7 +148,7 @@ class TfIdf:
             fit_model.fit(data)
         else:
             fit_model.fit(data["text"].tolist())
-        for term in fit_model.get_feature_names():
+        for term in fit_model.get_feature_names_out():
             if term not in features_set:
                 self.features_names.append(term)
 
