@@ -1,6 +1,5 @@
 from twembeddings import build_matrix
 from twembeddings import ClusteringAlgo, ClusteringAlgoSparse
-import numpy as np
 from twembeddings import general_statistics, cluster_event_match, mcminn_eval
 import pandas as pd
 import logging
@@ -124,7 +123,7 @@ def test_params(**params):
                 results = pd.read_csv("results_clustering.csv")
             except FileNotFoundError:
                 results = pd.DataFrame()
-            stats = results.append(stats, ignore_index=True)
+            stats = pd.concat([results, stats], ignore_index=True)
             stats.to_csv("results_clustering.csv", index=False)
             logging.info("Saved results to results_clustering.csv")
 
