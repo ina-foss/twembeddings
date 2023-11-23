@@ -24,7 +24,7 @@ STANDARD_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s : %(message)s', level=logging.INFO)
 text_embeddings = ['tfidf_all_tweets', 'tfidf_dataset', 'w2v_afp_fr', 'w2v_gnews_en', 'w2v_twitter_fr',
-                   "w2v_twitter_en", "elmo", "bert", "bert_tweets", "sbert_sts", "sbert_stsshort",
+                   "w2v_twitter_en", "elmo", "bert", "bert_tweets", "sbert", "sbert_sts", "sbert_stsshort",
                    "sbert_tweets_sts", "sbert_nli_sts", "sbert_tweets_sts_long", "use_multilingual", "use"]
 image_embeddings = ["resnet", "densenet"]
 
@@ -89,6 +89,9 @@ def build_path(**args):
     for arg in ["text+", "hashtag_split", "svd", "tfidf_weights"]:
         if args[arg]:
             file_name += "_" + arg
+    if args["model"] == "sbert":
+        sbert_model = args["sub_model"].split("/")[-1]
+        file_name += "_" + sbert_model
     return os.path.join("data", dataset, args["model"], file_name)
 
 
@@ -308,7 +311,8 @@ def build_matrix(**args):
                                     lower=False,
                                     hashtag_split=True
                                     )
-        vectorizer = SBERT(lang=args["lang"])
+
+        vectorizer = SBERT(sbert_model=args["sub_model"])
         X = vectorizer.compute_vectors(data)
 
     elif args["model"].startswith("use"):

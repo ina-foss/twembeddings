@@ -47,6 +47,15 @@ sbert_nli_sts:
     - 0.45
     - 0.5
   remove_mentions : False
+sbert:
+  threshold:
+    - 0.2
+    - 0.25
+    - 0.3
+    - 0.35
+    - 0.4
+  remove_mentions : False
+  sub_model : "paraphrase-MiniLM-L12-v2"
 bert:
   threshold:
     - 0.02
@@ -65,11 +74,9 @@ elmo:
   remove_mentions : False
 use:
   threshold:
-    - 0.18
-    - 0.2
-    - 0.22
     - 0.3
     - 0.4
-    - 0.48
+    - 0.45
     - 0.5
+    - 0.55
   remove_mentions : False

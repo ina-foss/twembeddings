@@ -223,16 +223,9 @@ class BERT:
 
 class SBERT:
 
-    def __init__(self, lang="fr"):
+    def __init__(self, sbert_model="paraphrase-MiniLM-L12-v2"):
         from sentence_transformers import SentenceTransformer
-        self.name = "SBERT"
-        if lang == "fr":
-            self.model = SentenceTransformer(
-                "/home/bmazoyer/Dev/pytorch_bert/output/sts_fr_long_multilingual_bert-2019-10-01_15-07-03")
-        elif lang == "en":
-            self.model = SentenceTransformer(
-                "bert-large-nli-stsb-mean-tokens"
-            )
+        self.model = SentenceTransformer(sbert_model)
 
     def compute_vectors(self, data):
         data["text"] = data.text.str.slice(0, 500)
