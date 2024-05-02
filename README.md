@@ -8,20 +8,6 @@ is provided in [our paper](http://www.lrec-conf.org/proceedings/lrec2020/pdf/202
 Since some tweets have probably been erased since we collected the datasets, we cannot ensure 100% identical results,
  but we are confident that the comparative performance of the models will remain unchanged.
 
- Details of the implemented approaches can be found in our publication:
-Mazoyer, B., Hervé, N., Hudelot, C., & Cagé, J. (2020).
-[“Représentations lexicales pour la détection non supervisée d’événements dans un flux de tweets :
-étude sur des corpus français et anglais”.](https://arxiv.org/abs/2001.04139)
- In “Extraction et Gestion des Connaissances (EGC 2020)”.
-
- If you don't speak French, but have an access to Springer publications, you can read :
- Mazoyer, B., Hervé, N., Hudelot, C., & Cagé, J. (2024).[“Comparison of Short-Text Embeddings for Unsupervised Event Detection in a Stream of Tweets”.](https://link.springer.com/chapter/10.1007/978-3-031-40403-0_4) In: Jaziri, R., Martin, A., Cornuéjols, A., Cuvelier, E., Guillet, F. (eds) Advances in Knowledge Discovery and Management. Studies in Computational Intelligence, vol 1110. Springer, Cham. https://doi.org/10.1007/978-3-031-40403-0_4
-
-Last, the broad principles of the event detection method are detailed in:
- Mazoyer, B., Cagé, J., Hervé, N. & Hudelot, C. (2020). [“A French Corpus for Event Detection on
-Twitter”](http://www.lrec-conf.org/proceedings/lrec2020/pdf/2020.lrec-1.763.pdf).
-In *“International Conference on Language Resources and Evaluation (LREC 2020)”*,  6220–6227.
-
  ![Clustering results](graphs.png)
 *Results of our unsupervised event detection (clustering) algorithm for each embedding type, depending on the threshold (t) parameter.*
 
@@ -50,6 +36,8 @@ to test the BERT embedding.
     * [BERT](#bert-bert)
     * [Universal Sentence Encoder](#universal-sentence-encoder-use)
     * [Sentence-BERT](#sentence-bert-sbert_nli_sts)
+* [Cite](#cite)
+
 
 
 ## Installation
@@ -253,3 +241,18 @@ The [multilingual model](https://tfhub.dev/google/universal-sentence-encoder-mul
 ##### Sentence-BERT (`sbert_nli_sts`)
 Pretrained model from [UKPLab](https://github.com/UKPLab/sentence-transformers#pretrained-models).
 We use bert-large-nli-stsb-mean-tokens model.
+
+# Cite
+Details of the implemented approaches can be found in our publication:
+Mazoyer, B., Hervé, N., Hudelot, C., & Cagé, J. (2020).
+[“Représentations lexicales pour la détection non supervisée d’événements dans un flux de tweets :
+étude sur des corpus français et anglais”.](https://arxiv.org/abs/2001.04139)
+ In “Extraction et Gestion des Connaissances (EGC 2020)”.
+
+ If you don't speak French, but have an access to Springer publications, you can read :
+ Mazoyer, B., Hervé, N., Hudelot, C., & Cagé, J. (2024).[“Comparison of Short-Text Embeddings for Unsupervised Event Detection in a Stream of Tweets”.](https://link.springer.com/chapter/10.1007/978-3-031-40403-0_4) In: Jaziri, R., Martin, A., Cornuéjols, A., Cuvelier, E., Guillet, F. (eds) Advances in Knowledge Discovery and Management. Studies in Computational Intelligence, vol 1110. Springer, Cham. https://doi.org/10.1007/978-3-031-40403-0_4
+
+Last, the broad principles of the event detection method are detailed in:
+ Mazoyer, B., Cagé, J., Hervé, N. & Hudelot, C. (2020). [“A French Corpus for Event Detection on
+Twitter”](http://www.lrec-conf.org/proceedings/lrec2020/pdf/2020.lrec-1.763.pdf).
+In *“International Conference on Language Resources and Evaluation (LREC 2020)”*, 6220–6227.
