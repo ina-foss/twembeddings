@@ -7,27 +7,30 @@ is provided in [our paper](http://www.lrec-conf.org/proceedings/lrec2020/pdf/202
 
 Since some tweets have probably been erased since we collected the datasets, we cannot ensure 100% identical results,
  but we are confident that the comparative performance of the models will remain unchanged.
- 
- Details of the implemented approaches can be found in our publication: 
-Mazoyer, B., Hervé, N., Hudelot, C., & Cagé, J. (2020). 
-[“Représentations lexicales pour la détection non supervisée d’événements dans un flux de tweets : 
+
+ Details of the implemented approaches can be found in our publication:
+Mazoyer, B., Hervé, N., Hudelot, C., & Cagé, J. (2020).
+[“Représentations lexicales pour la détection non supervisée d’événements dans un flux de tweets :
 étude sur des corpus français et anglais”.](https://arxiv.org/abs/2001.04139)
  In “Extraction et Gestion des Connaissances (EGC 2020)”.
- 
- If you don't speak French, the broad principles of the event detection method are detailed in:
- Mazoyer, B., Cagé, J., Hervé, N. & Hudelot, C. (2020). [“A French Corpus for Event Detection on 
+
+ If you don't speak French, but have an access to Springer publications, you can read :
+ Mazoyer, B., Hervé, N., Hudelot, C., & Cagé, J. (2024).[“Comparison of Short-Text Embeddings for Unsupervised Event Detection in a Stream of Tweets”.](https://link.springer.com/chapter/10.1007/978-3-031-40403-0_4) In: Jaziri, R., Martin, A., Cornuéjols, A., Cuvelier, E., Guillet, F. (eds) Advances in Knowledge Discovery and Management. Studies in Computational Intelligence, vol 1110. Springer, Cham. https://doi.org/10.1007/978-3-031-40403-0_4
+
+Last, the broad principles of the event detection method are detailed in:
+ Mazoyer, B., Cagé, J., Hervé, N. & Hudelot, C. (2020). [“A French Corpus for Event Detection on
 Twitter”](http://www.lrec-conf.org/proceedings/lrec2020/pdf/2020.lrec-1.763.pdf).
 In *“International Conference on Language Resources and Evaluation (LREC 2020)”*,  6220–6227.
- 
+
  ![Clustering results](graphs.png)
 *Results of our unsupervised event detection (clustering) algorithm for each embedding type, depending on the threshold (t) parameter.*
 
-Some of the embeddings presented on this graph are not available here: 
+Some of the embeddings presented on this graph are not available here:
 * English corpus: w2v-twitter
 * French corpus: w2v-news, w2v-twitter, elmo
 
 All other embeddings are available and the corresponding modules are listed in the `requirements.txt` file.
-You will only need to install the `bert-as-service` module ([see the BERT section](#bert-bert)) and run the BERT server 
+You will only need to install the `bert-as-service` module ([see the BERT section](#bert-bert)) and run the BERT server
 to test the BERT embedding.
 
 ## Summary:
@@ -50,26 +53,26 @@ to test the BERT embedding.
 
 
 ## Installation
-We recommand using Anaconda 3 to create a python 3.6 environment 
+We recommand using Anaconda 3 to create a python 3.6 environment
 (install Anaconda [here](https://docs.anaconda.com/anaconda/install/)):
 
     conda create -n "twembeddings" python=3.6.9
     source activate twembeddings
-    
+
 Then clone the repo and install the module:
 
     cd $HOME
     git clone https://github.com/bmaz/twembeddings.git
     cd twembeddings
     pip install .
-    
+
 ## Download Event2012 dataset
 
 ### Download tweets' IDs
 In compliance with Twitter terms of use, the authors of the dataset do not share the tweets content,
-but only the tweets IDs. Accept the 
+but only the tweets IDs. Accept the
 [dataset agreement](https://docs.google.com/forms/d/e/1FAIpQLSfRQX4R2O_Pv26wuepydKS4xxi6QbLrhaCgJaAXPcKx7dDljQ/viewform)
-and download the dataset. Untar the folder, the labeled tweets are in the `relevant_tweets.tsv` file. 
+and download the dataset. Untar the folder, the labeled tweets are in the `relevant_tweets.tsv` file.
 
 ### Create Twitter API access tokens
 We provide a script to download the tweets' content from the Twitter API. In order to run the script,
@@ -92,7 +95,7 @@ Run the script:
     --oauth_token 4087833385208874171-k6UR7OGNFdfBcqPye8ps8uBSSqOYXm \
     --oauth_token_secret Z9nZBVFHbIsU5WQCGT7ZdcRpovQm0QEkV4n4dDofpYAEK
 
-The script may take some time to run entirely, since it respects the API's 
+The script may take some time to run entirely, since it respects the API's
 [rate limit](https://developer.twitter.com/en/docs/basics/rate-limits).
 Because of tweets beeing removed and Twitter accounts being closed, some tweets
 are no longer available. Our last download (November 2019) allowed us to retrieve
@@ -103,9 +106,9 @@ are no longer available. Our last download (November 2019) allowed us to retriev
 In compliance with Twitter terms of use, we do not share the tweets content,
 but only the tweets IDs. The corpus is available [here](https://dataset.ina.fr/corpus/index.action?request_locale=en).
 Please fill-in the agreement form and indicate the name of the corpus (Event2018) in your application.
-Untar the folder, the labeled tweets are in the `relevant_tweets.tsv` file. 
+Untar the folder, the labeled tweets are in the `relevant_tweets.tsv` file.
 
-You can then download the full tweet content by 
+You can then download the full tweet content by
 [creating your Twitter access tokens](#create-twitter-api-access-tokens) and running the script:
 
     python get_tweets_objects.py \
@@ -116,7 +119,7 @@ You can then download the full tweet content by
     --oauth_token 4087833385208874171-k6UR7OGNFdfBcqPye8ps8uBSSqOYXm \
     --oauth_token_secret Z9nZBVFHbIsU5WQCGT7ZdcRpovQm0QEkV4n4dDofpYAEK
 
-The script may take some time to run entirely, since it respects the API's 
+The script may take some time to run entirely, since it respects the API's
 [rate limit](https://developer.twitter.com/en/docs/basics/rate-limits).
 Because of tweets beeing removed and Twitter accounts being closed, some tweets
 are no longer available. Our last download (November 2019) allowed us to retrieve
@@ -125,15 +128,15 @@ are no longer available. Our last download (November 2019) allowed us to retriev
 ## Use 'First Story Detection' on you own dataset
 
 Save your Twitter data in the form of a tsv file (csv file with "\t" as separator)
-in the `data` folder with the following column names: 
+in the `data` folder with the following column names:
 
 | id   | label | text  | created_at |
 |:-----|:------|:------|:-----------|
 
 `created_at` is the date of the tweet. The format can be either `2018-07-16 05:00:56`
 or `Mon Jul 16 05:00:56 +0000 2018` (Twitter format).
-`label` is the ground truth that you may use to evaluate the algorithm. 
-You can leave the column empty if you have no ground truth. 
+`label` is the ground truth that you may use to evaluate the algorithm.
+You can leave the column empty if you have no ground truth.
 
 You can then run something like this ( `--annotation no` indicates that you have no annotated ground truth):
 
@@ -153,7 +156,7 @@ or
     python clustering.py --dataset data/event2018.tsv --lang fr --model tfidf_dataset tfidf_all_tweets use
 
 You can test several threshold parameters for the First Story Detection
-Algorithm by modifying the 
+Algorithm by modifying the
 [options.yaml](https://github.com/ina-foss/twembeddings/blob/master/options.yaml)
 file.
 ### Indicative best results
@@ -175,12 +178,12 @@ file.
 Run classification with one or several embedding names as `model` parameter.
 
     python classification.py --dataset data/event2012.tsv --lang en --model tfidf_dataset w2v_gnews_en sbert_nli_sts
-    
+
 or
 
-    python classification.py --dataset data/event2018.tsv --lang fr --model tfidf_dataset bert   
+    python classification.py --dataset data/event2018.tsv --lang fr --model tfidf_dataset bert
 
-Additionnal options for each model can be modified in 
+Additionnal options for each model can be modified in
 [options.yaml](https://github.com/ina-foss/twembeddings/blob/master/options.yaml)
 ### Indicative results (average F1 on 5 runs ± standard deviation)
 | Model                     |F1±std (en) |F1±std (fr) |
@@ -204,7 +207,7 @@ Additionnal options for each model can be modified in
 
 
 ## Available embeddings
-##### Tf-idf (`tfidf_dataset` or `tfidf_all_tweets`): 
+##### Tf-idf (`tfidf_dataset` or `tfidf_all_tweets`):
 Since the same word is rarely used several times in the same tweet, we used
 the idf expression rather than the tfidf
 
@@ -219,26 +222,26 @@ With option `tfidf_all_tweets`, all tweets in the corpora (millions of tweets) a
 [Model pretrained on tweets](github.com/loretoparisi/word2vec-twitter) with mean-pooling of word representations as sentence embedding.
 --->
 ##### ELMo (`elmo`)
-Pretrained model on [TensorFlow Hub](https://tfhub.dev/google/elmo/2) with mean-pooling of word representations as sentence embedding. 
+Pretrained model on [TensorFlow Hub](https://tfhub.dev/google/elmo/2) with mean-pooling of word representations as sentence embedding.
 ##### BERT (`bert`)
 In case you want to use BERT embeddings, you need to install `bert-as-service`:
 
     pip install bert-serving-server
     pip install bert-serving-client
-    
-Then follow the [guidelines](https://github.com/hanxiao/bert-as-service#getting-started) to download a BERT model 
+
+Then follow the [guidelines](https://github.com/hanxiao/bert-as-service#getting-started) to download a BERT model
 (we used [BERT-Large, Cased](https://storage.googleapis.com/bert_models/2018_10_18/cased_L-24_H-1024_A-16.zip)
-for English and 
+for English and
 [BERT-Base, Multilingual Cased](https://storage.googleapis.com/bert_models/2018_11_23/multi_cased_L-12_H-768_A-12.zip)
-for French) 
+for French)
 and start the BERT service:
 
     bert-serving-start -model_dir=/yourpath/cased_L-24_H-1024_A-16 -max_seq_len=500 -max_batch_size=64
-    
+
 or
-    
+
     bert-serving-start -model_dir=/yourpath/multi_cased_L-12_H-768_A-12 -max_seq_len=500 -max_batch_size=64
- 
+
 Our program will act as a client to this service.
 We use the default parameters of `bert-as-service` : the pooling layer is the second-to-last layer,
 and mean-pooling is used for sentence embedding.
@@ -248,5 +251,5 @@ Pretrained model on [TensorFlow Hub](https://tfhub.dev/google/universal-sentence
 The [multilingual model](https://tfhub.dev/google/universal-sentence-encoder-multilingual/1) was used for French.
 
 ##### Sentence-BERT (`sbert_nli_sts`)
-Pretrained model from [UKPLab](https://github.com/UKPLab/sentence-transformers#pretrained-models). 
+Pretrained model from [UKPLab](https://github.com/UKPLab/sentence-transformers#pretrained-models).
 We use bert-large-nli-stsb-mean-tokens model.
