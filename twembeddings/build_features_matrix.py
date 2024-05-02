@@ -11,7 +11,6 @@ import os
 import re
 import csv
 import tensorflow_hub as hub
-import tensorflow_text
 from unidecode import unidecode
 from datetime import datetime, timedelta
 from collections import deque, defaultdict
