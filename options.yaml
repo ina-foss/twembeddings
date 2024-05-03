@@ -55,7 +55,7 @@ sbert:
     - 0.55
     - 0.6
   remove_mentions : False
-  sub_model : "dangvantuan/sentence-camembert-large"
+  sub_model : "paraphrase-multilingual-MiniLM-L12-v2"
 bert:
   threshold:
     - 0.02
