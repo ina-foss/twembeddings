@@ -49,13 +49,13 @@ sbert_nli_sts:
   remove_mentions : False
 sbert:
   threshold:
-    - 0.2
-    - 0.25
-    - 0.3
-    - 0.35
     - 0.4
+    - 0.45
+    - 0.50
+    - 0.55
+    - 0.6
   remove_mentions : False
-  sub_model : "paraphrase-MiniLM-L12-v2"
+  sub_model : "dangvantuan/sentence-camembert-large"
 bert:
   threshold:
     - 0.02
