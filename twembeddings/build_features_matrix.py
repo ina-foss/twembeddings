@@ -89,7 +89,7 @@ def build_path(**args):
         if args[arg]:
             file_name += "_" + arg
     if args["model"] == "sbert":
-        sbert_model = args["sub_model"].split("/")[-1]
+        sbert_model = args["sub_model"].replace("/","-")
         file_name += "_" + sbert_model
     return os.path.join("data", dataset, args["model"], file_name)
 
