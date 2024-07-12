@@ -41,10 +41,10 @@ to test the BERT embedding.
 
 
 ## Installation
-We recommand using Anaconda 3 to create a python 3.6 environment
+We recommand using Anaconda 3 to create a python 3.8 environment
 (install Anaconda [here](https://docs.anaconda.com/anaconda/install/)):
 
-    conda create -n "twembeddings" python=3.6.9
+    conda create -n "twembeddings" python=3.8.2
     source activate twembeddings
 
 Then clone the repo and install the module:
