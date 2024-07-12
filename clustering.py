@@ -1,6 +1,8 @@
 from twembeddings import build_matrix
 from twembeddings import ClusteringAlgo, ClusteringAlgoSparse
 from twembeddings import general_statistics, cluster_event_match, mcminn_eval
+
+from sklearn.metrics.cluster import adjusted_mutual_info_score, adjusted_rand_score
 import pandas as pd
 import logging
 import yaml
@@ -101,6 +103,8 @@ def test_params(**params):
         # y_pred = clustering.labels_
         stats = general_statistics(y_pred)
         p, r, f1 = cluster_event_match(data, y_pred)
+        ami = adjusted_mutual_info_score(data.label, y_pred)
+        ari = adjusted_rand_score(data.label, y_pred)
         data["pred"] = data["pred"].astype(int)
         data["id"] = data["id"].astype(int)
         candidate_columns = ["date", "time", "label", "pred", "user_id_str", "id"]
@@ -118,10 +122,10 @@ def test_params(**params):
         except ZeroDivisionError as error:
             logging.error(error)
             continue
-        stats.update({"t": t, "p": p, "r": r, "f1": f1, "mcp": mcp, "mcr": mcr, "mcf1": mcf1})
+        stats.update({"t": t, "p": p, "r": r, "f1": f1, "mcp": mcp, "mcr": mcr, "mcf1": mcf1, "ami": ami, "ari": ari})
         stats.update(params)
         stats = pd.DataFrame(stats, index=[0])
-        logging.info(stats[["t", "model", "tfidf_weights", "p", "r", "f1"]].iloc[0])
+        logging.info(stats[["t", "model", "tfidf_weights", "p", "r", "f1", "ami", "ari"]].iloc[0])
         if params["save_results"]:
             try:
                 results = pd.read_csv("results_clustering.csv")
