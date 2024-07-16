@@ -76,7 +76,7 @@ def cluster_acc(data, pred):
 
 def general_statistics(pred):
     s = pd.Series(pred)
-    stats = s.groupby(by=s.values).size().describe(percentiles=[])
+    stats = s.groupby(by=s.values).size().describe(percentiles=[]) # type: ignore
     return dict(stats)
 
 

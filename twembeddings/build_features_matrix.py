@@ -202,7 +202,7 @@ def save_tokens_JLH(inpath,
                     counts["window_count"] += 1
                     if counts["count"] != counts["window_count"]:
                         percent = counts["window_count"]/len(window)
-                        counts["percent_max"] = max(percent, counts["percent_max"])
+                        counts["percent_max"] = max(percent, counts["percent_max"]) # type: ignore
                     if counts["percent_max"] == 1:
                         print(t, len(window), counts)
 
@@ -328,7 +328,7 @@ def build_matrix(**args):
         else:
             embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder-multilingual/3")
 
-        vectorizer = USE(embed)
+        vectorizer = USE(embed) # type: ignore
         X = vectorizer.compute_vectors(data)
 
     elif args["model"] == "resnet":
