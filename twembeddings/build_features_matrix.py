@@ -84,9 +84,9 @@ def build_path(**args):
     else:
         dataset = args["dataset"].split("/")[-1].replace(".tsv", "")
 
-    file_name = args["annotation"]
+    file_name = args.get("annotation", "vectors")
     for arg in ["text+", "hashtag_split", "svd", "tfidf_weights"]:
-        if args[arg]:
+        if arg in args and args[arg]:
             file_name += "_" + arg
     if args["model"] == "sbert":
         sbert_model = args["sub_model"].replace("/","-")
