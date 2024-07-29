@@ -105,7 +105,7 @@ def save_matrix(X, **args):
 
 def apply_mask(path, suffix, args, column):
     X = np.load(path + suffix) if suffix == ".npy" else load_npz(path + suffix)
-    data = load_dataset(args["dataset"], args["annotation"], args["text+"])
+    data = load_dataset(args["dataset"], args.get("annotation", "vectors"), args.get("text+", False))
     mask = data[column].notna()
     return X[mask]
 
@@ -237,7 +237,7 @@ def save_tokens_JLH(inpath,
 def build_matrix(**args):
     X = load_matrix(**args)
     if args["model"] in text_embeddings:
-        data = load_dataset(args["dataset"], args["annotation"], args["text+"])
+        data = load_dataset(args["dataset"], args.get("annotation", "vectors"), args.get("text+", False))
     if X is not None:
         logging.info("Matrix already stored")
         return X, data
