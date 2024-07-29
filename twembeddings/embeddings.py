@@ -279,6 +279,7 @@ class USE:
         import tensorflow_text
 
         self.name = "UniversalSentenceEncoder"
+        self.dim = 512
 
         # todo: prevent warning message if no cuda with os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
         if lang == "en":
@@ -291,8 +292,7 @@ class USE:
     def compute_vectors(self, data):
         batch_size = 64
         n = data.shape[0]
-        dim = data.shape[1]
-        vectors = np.zeros([n, dim])
+        vectors = np.zeros([n, self.dim])
         for i in tqdm(range(0, n, batch_size)):
             vectors[i:min(n, i+batch_size)] = self.embed(data.text[i:min(n, i+batch_size)])
         return vectors
