@@ -322,13 +322,7 @@ def build_matrix(**args):
                                     hashtag_split=True
                                     )
 
-        # todo: prevent warning message if no cuda with os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-        if args["lang"] == "en":
-            embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder-large/5")
-        else:
-            embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder-multilingual/3")
-
-        vectorizer = USE(embed) # type: ignore
+        vectorizer = USE()
         X = vectorizer.compute_vectors(data)
 
     elif args["model"] == "resnet":

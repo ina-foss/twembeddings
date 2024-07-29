@@ -291,7 +291,8 @@ class USE:
     def compute_vectors(self, data):
         batch_size = 64
         n = data.shape[0]
-        vectors = np.zeros([n, 512])
+        dim = data.shape[1]
+        vectors = np.zeros([n, dim])
         for i in tqdm(range(0, n, batch_size)):
             vectors[i:min(n, i+batch_size)] = self.embed(data.text[i:min(n, i+batch_size)])
         return vectors
