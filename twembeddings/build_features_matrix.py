@@ -79,7 +79,7 @@ def format_text(text, **format):
 
 def build_path(**args):
     if args["dataset"].startswith("event2018"):
-        dataset = args["dataset"]
+        dataset = args["dataset"].replace(".tsv", "")
     else:
         dataset = args["dataset"].split("/")[-1].replace(".tsv", "")
 
