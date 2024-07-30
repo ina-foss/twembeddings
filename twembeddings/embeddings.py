@@ -273,10 +273,12 @@ class Elmo:
 class USE:
 
     def __init__(self, lang="fr"):
-
-        import tensorflow_hub as hub
+        logging.disable(logging.WARNING)
+        os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
         # tensorflow_text seems unused but necessary to run the hub.load
+        import tensorflow_hub as hub
         import tensorflow_text
+        logging.disable(logging.NOTSET)
 
         self.name = "UniversalSentenceEncoder"
         self.dim = 512
@@ -286,8 +288,6 @@ class USE:
             self.embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder-large/5")
         else:
             self.embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder-multilingual/3")
-
-
 
     def compute_vectors(self, data):
         batch_size = 64
