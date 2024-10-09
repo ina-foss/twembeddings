@@ -2,7 +2,7 @@ import pickle
 import logging
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.decomposition import TruncatedSVD
-from sklearn.preprocessing import MinMaxScaler, Normalizer
+from sklearn.preprocessing import MinMaxScaler, Normalizer, normalize
 from sklearn.pipeline import make_pipeline
 from scipy import sparse
 import numpy as np
@@ -192,11 +192,8 @@ class TfIdf:
         # )
         # compute smoothed idf
         idf = np.log((self.n_samples + 1) / (df + 1)) + 1
-        transformer = TfidfTransformer()
-        transformer._idf_diag = sparse.diags(idf, offsets=0, shape=(len(df), len(df)), format="csr", dtype=df.dtype)
-        X = transformer.transform(count_vectors)
-        # equivalent to:
-        # X = normalize(X * transformer._idf_diag, norm='l2', copy=False)
+        idf_diag = sparse.diags(idf, offsets=0, shape=(len(df), len(df)), format="csr", dtype=df.dtype)
+        X = normalize(count_vectors * idf_diag, norm='l2', copy=False)
         if svd:
             logging.info("Performing dimensionality reduction using LSA")
             svd = TruncatedSVD(n_components=n_components, random_state=42)
