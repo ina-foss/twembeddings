@@ -8,7 +8,8 @@ styling = ( cycler('linestyle', ['-', '--', ':', '-.']) +
                cycler('color', ['c', 'm', 'y', 'k'])
 )
 
-def plot_chart(ax, results, title):
+measures = ["f1", "bcub_f1"]
+def plot_chart(ax, results, title, m):
     ax.set_prop_cycle(styling)
     ax.set_ylim([0.2, 0.9])
     ax.grid()
@@ -16,27 +17,29 @@ def plot_chart(ax, results, title):
     for model, points in sorted(results.items()):
         ax.plot(points[0], points[1], label=model)
         ax.legend()
+        ax.set(ylabel=f"{m} score", xlabel="threshold")
 
-def append_row(row, results):
+def append_row(row, results, measure):
     if row["sub_model"]:
         model = row["model"] + " " + row["sub_model"]
     else:
         model = row["model"]
     results[model][0].append(float(row["t"]))
-    results[model][1].append(float(row["f1"]))
+    results[model][1].append(float(row[measure])) 
 
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 7))
+for m in measures:
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 7))
 
-en_results, fr_results = defaultdict(lambda: ([], [])), defaultdict(lambda: ([], []))
-with open("results_clustering.csv", "r") as f:
-    reader = csv.DictReader(f)
-    for row in reader:
-        if row["lang"] == "en":
-            append_row(row, en_results)
-        if row["lang"] == "fr":
-            append_row(row, fr_results)
+    en_results, fr_results = defaultdict(lambda: ([], [])), defaultdict(lambda: ([], []))
+    with open("results_clustering.csv", "r") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row["lang"] == "en":
+                append_row(row, en_results, m)
+            if row["lang"] == "fr":
+                append_row(row, fr_results, m)
 
-plot_chart(ax1, en_results, "Event2012 (English corpus)")
-plot_chart(ax2, fr_results, "Event2018 (Our corpus)")
-plt.savefig("charts.jpg", bbox_inches="tight")
+    plot_chart(ax1, en_results, "Event2012 (English corpus)", m)
+    plot_chart(ax2, fr_results, "Event2018 (Our corpus)", m)
+    plt.savefig(f"charts_{m}.jpg", bbox_inches="tight")
 

@@ -135,3 +135,39 @@ def mcminn_eval(data, pred, nb_tweets=5, share_tweets=0.8):
     recall = (all_labels - len(labels))/all_labels
     f1 = 2*precision*recall/(precision+recall)
     return precision, recall, f1
+
+def bcubd_eval(data, pred, nb_tweets=5) :
+    # p,r and f1 for each documents (instead of for each event)
+    data["pred"] = pd.Series(pred, dtype=data.label.dtype)
+    count_label = data.label.value_counts()
+    count_pred = data.pred.value_counts()
+    data = data[data.label.isin(count_label[count_label >= nb_tweets].index)]
+    data = data[data.pred.isin(count_pred[count_pred >= nb_tweets].index)]
+
+    pred_groups = data.groupby("pred")
+    label_groups = data.groupby("label")
+    pred_dict = {k: set(v.index) for k, v in pred_groups}
+    label_dict = {k: set(v.index) for k, v in label_groups}
+
+    total_precision, total_recall = 0.0, 0.0
+    n = len(data)
+
+    for i, row in data.iterrows():
+        pred_indices = pred_dict[row.pred]
+        label_indices = label_dict[row.label]
+        intersection_size = len(pred_indices & label_indices)
+
+        precision_i = intersection_size / len(pred_indices)
+        recall_i = intersection_size / len(label_indices)
+
+        total_precision += precision_i
+        total_recall += recall_i
+
+    precision = total_precision / n
+    recall = total_recall / n
+    if precision + recall > 0:
+        f1 = 2 * (precision * recall) / (precision + recall)
+    else:
+        f1 = 0.0
+
+    return precision, recall, f1

@@ -1,6 +1,6 @@
 from twembeddings import build_matrix
 from twembeddings import ClusteringAlgo, ClusteringAlgoSparse
-from twembeddings import general_statistics, cluster_event_match, mcminn_eval
+from twembeddings import general_statistics, cluster_event_match, mcminn_eval, bcubd_eval
 
 from sklearn.metrics.cluster import adjusted_mutual_info_score, adjusted_rand_score
 import pandas as pd
@@ -122,10 +122,15 @@ def test_params(**params):
         except ZeroDivisionError as error:
             logging.error(error)
             continue
-        stats.update({"t": t, "p": p, "r": r, "f1": f1, "mcp": mcp, "mcr": mcr, "mcf1": mcf1, "ami": ami, "ari": ari})
+        try:
+            bcp, bcr, bcf1 = bcubd_eval(data, y_pred)
+        except ZeroDivisionError as error:
+            logging.error(error)
+            continue
+        stats.update({"t": t, "p": p, "r": r, "f1": f1, "mcp": mcp, "mcr": mcr, "mcf1": mcf1, "ami": ami, "ari": ari, "bcub_p" : bcp, "bcub_r" : bcr, "bcub_f1" : bcf1})
         stats.update(params)
         stats = pd.DataFrame(stats, index=[0])
-        logging.info(stats[["t", "model", "tfidf_weights", "p", "r", "f1", "ami", "ari"]].iloc[0])
+        logging.info(stats[["t", "model", "tfidf_weights", "p", "r", "f1", "ami", "ari", "bcub_p", "bcub_r", "bcub_f1"]].iloc[0])
         if params["save_results"]:
             try:
                 results = pd.read_csv("results_clustering.csv")
