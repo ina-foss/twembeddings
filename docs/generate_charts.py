@@ -2,6 +2,7 @@ import csv
 from cycler import cycler
 import matplotlib.pyplot as plt
 from collections import defaultdict
+import os
 
 styling = ( cycler('linestyle', ['-', '--', ':', '-.']) +
                cycler('marker', ['o', '+', '^', '.']) +
@@ -31,7 +32,7 @@ for m in measures:
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 7))
 
     en_results, fr_results = defaultdict(lambda: ([], [])), defaultdict(lambda: ([], []))
-    with open("results_clustering.csv", "r") as f:
+    with open(os.path.join("..", "results_clustering.csv"), "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
             if row["lang"] == "en":
