@@ -5,7 +5,7 @@ from collections import defaultdict
 import os
 
 styling = ( cycler('linestyle', ['-', '--', ':', '-.']) +
-               cycler('marker', ['o', '+', '^', '.']) +
+               cycler('marker', ['.', '.', '.', '.']) +
                cycler('color', ['c', 'm', 'y', 'k'])
 )
 
@@ -32,9 +32,10 @@ for m in measures:
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 7))
 
     en_results, fr_results = defaultdict(lambda: ([], [])), defaultdict(lambda: ([], []))
-    with open(os.path.join("..", "results_clustering.csv"), "r") as f:
+    with open("results_clustering.csv", "r") as f:
         reader = csv.DictReader(f)
-        for row in reader:
+        sorted_reader = sorted(reader, key=lambda d: float(d['t']))
+        for row in sorted_reader:
             if row["lang"] == "en":
                 append_row(row, en_results, m)
             if row["lang"] == "fr":
@@ -42,5 +43,5 @@ for m in measures:
 
     plot_chart(ax1, en_results, "Event2012 (English corpus)", m)
     plot_chart(ax2, fr_results, "Event2018 (Our corpus)", m)
-    plt.savefig(f"charts_{m}.jpg", bbox_inches="tight")
+    plt.savefig(f"docs/charts_{m}.jpg", bbox_inches="tight")
 
