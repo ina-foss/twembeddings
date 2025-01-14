@@ -43,5 +43,7 @@ for m in measures:
 
     plot_chart(ax1, en_results, "Event2012 (English corpus)", m)
     plot_chart(ax2, fr_results, "Event2018 (Our corpus)", m)
+    title_m = m.replace("_", " ")
+    fig.suptitle(f"{title_m} measure for each corpus")
     plt.savefig(f"docs/charts_{m}.jpg", bbox_inches="tight")
 
