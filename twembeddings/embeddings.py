@@ -213,7 +213,6 @@ class BERT:
         self.bc = BertClient()
 
     def compute_vectors(self, data):
-        data["text"] = data.text.str.slice(0, 500)
         vectors = self.bc.encode(data.text.tolist())
         return vectors
 
@@ -225,7 +224,6 @@ class SBERT:
         self.model = SentenceTransformer(sbert_model)
 
     def compute_vectors(self, data):
-        data["text"] = data.text.str.slice(0, 500)
         vectors = np.array(self.model.encode(data.text.tolist()))
         return vectors
 
