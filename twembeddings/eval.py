@@ -139,8 +139,6 @@ def mcminn_eval(data, pred, nb_tweets=5, share_tweets=0.8):
 def bcubd_eval(data, pred) :
     # p,r and f1 for each documents (instead of for each event)
     data["pred"] = pd.Series(pred, dtype=data.label.dtype)
-    count_label = data.label.value_counts()
-    count_pred = data.pred.value_counts()
 
     pred_groups = data.groupby("pred")
     label_groups = data.groupby("label")
@@ -150,7 +148,7 @@ def bcubd_eval(data, pred) :
     total_precision, total_recall = 0.0, 0.0
     n = len(data)
 
-    for i, row in data.iterrows():
+    for _, row in data.iterrows():
         pred_indices = pred_dict[row.pred]
         label_indices = label_dict[row.label]
         intersection_size = len(pred_indices & label_indices)
