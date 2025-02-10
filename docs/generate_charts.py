@@ -2,21 +2,23 @@ import csv
 from cycler import cycler
 import matplotlib.pyplot as plt
 from collections import defaultdict
-import os
+import numpy as np
 
-styling = ( cycler('linestyle', ['-', '--', ':', '-.']) +
-               cycler('marker', ['.', '.', '.', '.']) +
-               cycler('color', ['c', 'm', 'y', 'k'])
-)
+
+styling = ( cycler('linestyle', ['-', '--', ':', '-.']))
 
 measures = ["f1", "bcub_f1"]
 def plot_chart(ax, results, title, m):
-    ax.set_prop_cycle(styling)
+    colormap = plt.cm.gist_ncar  
+    colors = [colormap(i) for i in np.linspace(0, 1,len(ax1.lines))]
+    for i,j in enumerate(ax.lines):
+        j.set_color(colors[i])
+        
     ax.set_ylim([0.2, 0.9])
     ax.grid()
     ax.title.set_text(title)
     for model, points in sorted(results.items()):
-        ax.plot(points[0], points[1], label=model)
+        ax.plot(points[0], points[1], label=model, marker = ".")
         ax.legend()
         ax.set(ylabel=f"{m} score", xlabel="threshold")
 
