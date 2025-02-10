@@ -12,6 +12,9 @@ from unidecode import unidecode
 from tqdm import tqdm
 from .stop_words import STOP_WORDS_FR, STOP_WORDS_EN
 import warnings
+from transformers import AutoTokenizer
+import time
+import tqdm
 
 __all__ = ['W2V', 'TfIdf', 'BERT', 'SBERT', 'Elmo', 'USE', 'DenseNetLayer', 'ResNetLayer', 'SIFT']
 TOKEN_PATTERN = re.compile(r"(?u)\b\w\w+\b")
@@ -222,9 +225,41 @@ class SBERT:
     def __init__(self, sbert_model="paraphrase-MiniLM-L12-v2"):
         from sentence_transformers import SentenceTransformer
         self.model = SentenceTransformer(sbert_model)
+        self.name = sbert_model
+        self.length = 512
 
+    def define_length(self):
+        # in case the model has a higher max length than 512 tokens :
+        if self.model.get_max_seq_length() :
+            self.length = self.model.get_max_seq_length()
+        else  :
+            logging.info(f"No Max input variable found for {self.name}, keep default to 512")
+        
+    def reduce_doc_size(self, doc):
+        model_tokenizer = AutoTokenizer.from_pretrained(self.name, use_fast=True)
+        tokens = model_tokenizer.tokenize(doc)
+        # first, cut on max length, then iterate to search the last sentence
+        tokens = tokens[:self.length]
+
+        point_index = -1
+        for i, token in reversed(list(enumerate(tokens))):
+            if token == "." or token == "?" or token == "!":
+                point_index = i + 1
+                break
+        if point_index != -1:
+            tokens = tokens[:point_index]
+
+        short_doc = re.sub(r"▁", " ", "".join(tokens)).strip()
+        return short_doc
+    
     def compute_vectors(self, data):
-        vectors = np.array(self.model.encode(data.text.tolist()))
+        self.define_length()
+        tqdm.tqdm.pandas(desc="reduce_doc_size progression")
+        t0 = time.time()
+        logging.info("starting applying reduce_doc_size")
+        data.text = data.text.progress_apply(self.reduce_doc_size)
+        logging.info(f"Time to reduce doc size: {time.time() - t0}")
+        vectors = np.array(self.model.encode(data.text.tolist(), device = 0))
         return vectors
 
 
