@@ -183,6 +183,7 @@ class TfIdf:
         return count_vectors
 
     def compute_vectors(self, count_vectors, min_df, svd=False, n_components=0):
+        logging.info("masking")
         if min_df > 0:
             mask = self.df > min_df
             df = self.df[mask]

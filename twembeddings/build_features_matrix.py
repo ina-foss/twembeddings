@@ -140,11 +140,12 @@ def load_matrix(**args):
 
 
 def load_dataset(dataset, annotation, text=False):
+    logging.info(f"Loading dataset {dataset}")
     data = pd.read_csv(dataset,
                        sep="\t",
                        quoting=csv.QUOTE_ALL,
-                       dtype={"id": str, "label": float, "created_at": str, "text": str}
                        )
+    logging.info(f"Dataset loaded from {dataset}")
     data.text = data.text.fillna("")
     if annotation == "annotated" and "label" in data.columns:
         data = data[data.label.notna()]
