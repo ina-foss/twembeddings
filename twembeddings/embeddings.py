@@ -324,7 +324,7 @@ class USE:
         batch_size = 64
         n = data.shape[0]
         vectors = np.zeros([n, self.dim])
-        for i in tqdm(range(0, n, batch_size)):
+        for i in tqdm.tqdm(range(0, n, batch_size)):
             vectors[i:min(n, i+batch_size)] = self.embed(data.text[i:min(n, i+batch_size)])
         return vectors
 
