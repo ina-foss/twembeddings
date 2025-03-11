@@ -262,17 +262,50 @@ class SBERT:
         short_doc = re.sub(r"▁", " ", "".join(tokens)).strip()
         return short_doc
     
+    def shorten_texts(self, data, path):
+        if os.path.exists(path) :
+            # check if shortened text already exists (loading only text part)
+            logging.info(f"Shortened data already stored, loading data from {path}")
+            data.text = pd.read_csv(path,
+                        quoting=csv.QUOTE_ALL,
+                        dtype={"text": str})
+        else :
+            try:
+                self.tokenizer = AutoTokenizer.from_pretrained(self.name, use_fast=True)
+            except OSError as e:
+                # some models have no AutoTokenizer included
+                logging.info(f"The current sbert model has failed to charge Autotokenizer, because of the following error : \n{e}")
+                logging.info("Tokenizing with Lajavaness/sentence-camembert-large")
+                self.tokenizer = AutoTokenizer.from_pretrained("Lajavaness/sentence-camembert-large", use_fast=True)
+            tqdm.tqdm.pandas(desc="reduce_doc_size progression")
+            t0 = time.time()
+            logging.info("starting applying reduce_doc_size")
+            data.text = data.text.progress_apply(self.reduce_doc_size)
+            logging.info(f"Time to reduce doc size: {time.time() - t0}")
+            # this is saving all the dataset with no special formatting, is this ok?
+            #TODO the saved result has not the same index as the used data, load_dataset seems to randomize the order of the lines
+            os.makedirs(os.path.join(*path.split("/")[:-1]), exist_ok=True)
+            logging.info(f"Saving with this path : {path}")
+            data.text.to_csv(path,
+                            index=False,
+                            quoting=csv.QUOTE_ALL,
+                            sep="\t")
+            logging.info("Shortened data saved")
+
+        logging.info(f" data:\n{data}")
+        logging.info(f"data text to list\n{data.text.tolist()[0]}")
+
     def compute_vectors(self, data):
         self.define_length()
-        tqdm.tqdm.pandas(desc="reduce_doc_size progression")
-        t0 = time.time()
         logging.info("starting applying reduce_doc_size")
-        data.text = data.text.progress_apply(self.reduce_doc_size)
-        logging.info(f"Time to reduce doc size: {time.time() - t0}")
-        vectors = np.array(self.model.encode(data.text.tolist(), device = 0))
+        path = self.build_text_path(data)
+        self.shorten_texts(data,path)
+        logging.info(f"Path for shortened text : {path}")
+        #TODO : il y a une erreur de dimension ici, certains textes sont mal coupés
+        # data["text"] = data.text.str.slice(0, 500)
+        vectors = np.array(self.model.encode(data.text.tolist()))
+        logging.info(f"vectors shape: {vectors.shape}")
         return vectors
-
-
 class Elmo:
 
     def __init__(self, lang="fr"):
