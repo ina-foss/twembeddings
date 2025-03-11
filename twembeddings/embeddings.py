@@ -237,11 +237,18 @@ class SBERT:
             self.length = self.model.get_max_seq_length()
         else  :
             logging.info(f"No Max input variable found for {self.name}, keep default to 512")
-        
+
+    def build_text_path(self, data):
+        # decided to take only length into account, not the sub_model : the shortened texts will be based on only one tokenizer
+
+        dataset = data.__file_name__
+        data_path = os.path.split(dataset)
+        filename = str(self.length)+"_"+self.__class__.__name__+"_"+data_path[-1]
+        return os.path.join(data_path[0],"shortened_texts",filename)
+
     def reduce_doc_size(self, doc):
-        model_tokenizer = AutoTokenizer.from_pretrained(self.name, use_fast=True)
-        tokens = model_tokenizer.tokenize(doc)
-        # first, cut on max length, then iterate to search the last sentence
+        tokens = self.tokenizer.tokenize(doc)
+        # first, cut on BERT max length, then iterate to search the last sentence
         tokens = tokens[:self.length]
 
         point_index = -1
