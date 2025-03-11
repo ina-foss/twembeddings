@@ -157,7 +157,8 @@ def load_dataset(dataset, annotation, text=False):
     if text == "text+" and "text+quote+reply" in data.columns:
         data = data.rename(columns={"text": "text_not_formated", "text+quote+reply": "text"})
     data["date"], data["time"] = zip(*data["created_at"].apply(find_date_created_at))
-    return data.drop_duplicates("id").sort_values("id").reset_index(drop=True)
+    # return data.drop_duplicates("id").sort_values("id").reset_index(drop=True)
+    return data
 
 
 def save_tokens_JLH(inpath,
@@ -243,16 +244,25 @@ def build_matrix(**args):
         return X, data
 
     if args["model"].startswith("tfidf"):
+        logging.info("Using TfIdf as vectorizer")
+        logging.info("in build matrix for tf idf, binary is {}".format(args["binary"]))
         vectorizer = TfIdf(lang=args["lang"], binary=args["binary"], tokenizer="sklearn")
         if args["model"].endswith("all_tweets"):
             vectorizer.load_history(args["lang"])
+        logging.info("Not applying format text")
+        # data.text = data.text.apply(format_text,
+        #                             remove_mentions=args["remove_mentions"],
+        #                             unidecode=True,
+        #                             lower=True,
+        #                             hashtag_split=args["hashtag_split"]
+        #                             )
         data.text = data.text.apply(format_text,
-                                    remove_mentions=args["remove_mentions"],
                                     unidecode=True,
                                     lower=True,
-                                    hashtag_split=args["hashtag_split"]
                                     )
+        logging.info("Applying add_new_samples")
         count_matrix = vectorizer.add_new_samples(data)
+        logging.info("Applying compute_vectors")
         X = vectorizer.compute_vectors(count_matrix, min_df=10, svd=args["svd"], n_components=100)
 
     elif args["model"].startswith("w2v"):
