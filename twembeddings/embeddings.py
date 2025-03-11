@@ -15,6 +15,8 @@ import warnings
 from transformers import AutoTokenizer
 import time
 import tqdm
+import pandas as pd
+import csv
 
 __all__ = ['W2V', 'TfIdf', 'BERT', 'SBERT', 'Elmo', 'USE', 'DenseNetLayer', 'ResNetLayer', 'SIFT']
 TOKEN_PATTERN = re.compile(r"(?u)\b\w\w+\b")
@@ -227,6 +229,7 @@ class SBERT:
         self.model = SentenceTransformer(sbert_model)
         self.name = sbert_model
         self.length = 512
+        self.tokenizer = None
 
     def define_length(self):
         # in case the model has a higher max length than 512 tokens :
