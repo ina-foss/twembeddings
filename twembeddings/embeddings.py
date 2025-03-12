@@ -228,19 +228,18 @@ class SBERT:
         from sentence_transformers import SentenceTransformer
         self.model = SentenceTransformer(sbert_model)
         self.name = sbert_model
-        self.length = 512
+        self.length = 514 -4 # -4 to not account the 4 special tokens of tokenizers
         self.tokenizer = None
 
     def define_length(self):
         # in case the model has a higher max length than 512 tokens :
         if self.model.get_max_seq_length() :
-            self.length = self.model.get_max_seq_length()
+            self.length = self.model.get_max_seq_length() -4 
         else  :
             logging.info(f"No Max input variable found for {self.name}, keep default to 512")
 
     def build_text_path(self, data):
-        # decided to take only length into account, not the sub_model : the shortened texts will be based on only one tokenizer
-
+        # decided to take only length and dataset into account, not the sub_model : the shortened texts will be based on only the first model tokenizer used for this dataset
         dataset = data.__file_name__
         data_path = os.path.split(dataset)
         filename = str(self.length)+"_"+self.__class__.__name__+"_"+data_path[-1]
@@ -275,15 +274,13 @@ class SBERT:
             except OSError as e:
                 # some models have no AutoTokenizer included
                 logging.info(f"The current sbert model has failed to charge Autotokenizer, because of the following error : \n{e}")
-                logging.info("Tokenizing with Lajavaness/sentence-camembert-large")
-                self.tokenizer = AutoTokenizer.from_pretrained("Lajavaness/sentence-camembert-large", use_fast=True)
+                logging.info("Tokenizing with paraphrase-multilingual-MiniLM-L12-v2")
+                self.tokenizer = AutoTokenizer.from_pretrained("paraphrase-multilingual-MiniLM-L12-v2", use_fast=True)
             tqdm.tqdm.pandas(desc="reduce_doc_size progression")
             t0 = time.time()
-            logging.info("starting applying reduce_doc_size")
+            logging.info("starting reducing text size into model window token size")
             data.text = data.text.progress_apply(self.reduce_doc_size)
-            logging.info(f"Time to reduce doc size: {time.time() - t0}")
-            # this is saving all the dataset with no special formatting, is this ok?
-            #TODO the saved result has not the same index as the used data, load_dataset seems to randomize the order of the lines
+            logging.info(f"Reducing text size took: {time.time() - t0}")
             os.makedirs(os.path.join(*path.split("/")[:-1]), exist_ok=True)
             logging.info(f"Saving with this path : {path}")
             data.text.to_csv(path,
@@ -292,19 +289,13 @@ class SBERT:
                             sep="\t")
             logging.info("Shortened data saved")
 
-        logging.info(f" data:\n{data}")
-        logging.info(f"data text to list\n{data.text.tolist()[0]}")
 
     def compute_vectors(self, data):
         self.define_length()
-        logging.info("starting applying reduce_doc_size")
         path = self.build_text_path(data)
         self.shorten_texts(data,path)
-        logging.info(f"Path for shortened text : {path}")
-        #TODO : il y a une erreur de dimension ici, certains textes sont mal coupés
         # data["text"] = data.text.str.slice(0, 500)
         vectors = np.array(self.model.encode(data.text.tolist()))
-        logging.info(f"vectors shape: {vectors.shape}")
         return vectors
 class Elmo:
 
