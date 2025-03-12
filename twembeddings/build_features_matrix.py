@@ -310,6 +310,7 @@ def build_matrix(**args):
                                     hashtag_split=True
                                     )
 
+        data.__file_name__ = args["dataset"]
         vectorizer = SBERT(sbert_model=args["sub_model"])
         X = vectorizer.compute_vectors(data)
 
