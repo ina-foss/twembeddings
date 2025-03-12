@@ -8,6 +8,7 @@ import logging
 import yaml
 import argparse
 import csv
+from time import strftime
 # from sklearn.cluster import DBSCAN
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s : %(message)s', level=logging.INFO)
@@ -61,7 +62,7 @@ parser.add_argument('--sub-model',
                     )
 
 def main(args):
-    with open("options.yaml", "r") as f:
+    with open("options_copy.yaml", "r") as f:
         options = yaml.safe_load(f)
     for model in args["model"]:
         # load standard parameters
@@ -129,6 +130,8 @@ def test_params(**params):
             continue
         stats.update({"t": t, "p": p, "r": r, "f1": f1, "mcp": mcp, "mcr": mcr, "mcf1": mcf1, "ami": ami, "ari": ari, "bcub_p" : bcp, "bcub_r" : bcr, "bcub_f1" : bcf1})
         stats.update(params)
+        time_stamp = strftime("%a, %d %b %Y %H:%M:%S")
+        stats["time"] = time_stamp
         stats = pd.DataFrame(stats, index=[0])
         logging.info(stats[["t", "model", "tfidf_weights", "p", "r", "f1", "ami", "ari", "bcub_p", "bcub_r", "bcub_f1"]].iloc[0])
         if params["save_results"]:
