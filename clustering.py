@@ -41,6 +41,12 @@ parser.add_argument('--threshold',
                     required=False
                     )
 
+parser.add_argument('--min-tfidf',
+                    required=False,
+                    type=float,
+                    default=0.21
+                    )
+
 parser.add_argument('--batch_size',
                     required=False,
                     type=int
@@ -93,52 +99,59 @@ def test_params(**params):
         # clustering = DBSCAN(eps=t, metric=params["distance"], min_samples=params["min_samples"]).fit(X)
         if params["model"].startswith("tfidf") and params["distance"] == "cosine":
             clustering = ClusteringAlgoSparse(threshold=float(t), window_size=params["window"],
-                                              batch_size=params["batch_size"], intel_mkl=False)
+                                              batch_size=params["batch_size"], intel_mkl=False, tfidf_t=params["min_tfidf"])
         else:
             clustering = ClusteringAlgo(threshold=float(t), window_size=params["window"],
                                         batch_size=params["batch_size"],
                                         distance=params["distance"])
         clustering.add_vectors(X)
         y_pred = clustering.incremental_clustering()
-        # y_pred = clustering.labels_
-        stats = general_statistics(y_pred)
-        p, r, f1 = cluster_event_match(data, y_pred)
-        ami = adjusted_mutual_info_score(data.label, y_pred)
-        ari = adjusted_rand_score(data.label, y_pred)
-        data["pred"] = data["pred"].astype(int)
-        data["id"] = data["id"].astype(int)
-        candidate_columns = ["date", "time", "label", "pred", "user_id_str", "id"]
+        data["pred"] = y_pred
+        candidate_columns = ["date", "time", "label", "text", "pred", "user_id_str", "id"]
         result_columns = []
         for rc in candidate_columns:
             if rc in data.columns:
                 result_columns.append(rc)
-        data[result_columns].to_csv(params["dataset"].replace(".", "_results."),
+        filename = params["dataset"].replace(".", "_results.")
+        data[result_columns].to_csv(filename,
                                     index=False,
                                     sep="\t",
                                     quoting=csv.QUOTE_NONE
                                     )
-        try:
-            mcp, mcr, mcf1 = mcminn_eval(data, y_pred)
-        except ZeroDivisionError as error:
-            logging.error(error)
-            continue
-        try:
-            bcp, bcr, bcf1 = bcubd_eval(data, y_pred)
-        except ZeroDivisionError as error:
-            logging.error(error)
-            continue
-        stats.update({"t": t, "p": p, "r": r, "f1": f1, "mcp": mcp, "mcr": mcr, "mcf1": mcf1, "ami": ami, "ari": ari, "bcub_p" : bcp, "bcub_r" : bcr, "bcub_f1" : bcf1})
-        stats.update(params)
-        stats = pd.DataFrame(stats, index=[0])
-        logging.info(stats[["t", "model", "tfidf_weights", "p", "r", "f1", "ami", "ari", "bcub_p", "bcub_r", "bcub_f1"]].iloc[0])
-        if params["save_results"]:
+
+        logging.info(f"Saved predictions to {filename}")
+
+        if params["annotation"] != "no":
+            data["id"] = data["id"].astype(int)
+            stats = general_statistics(y_pred)
+            p, r, f1 = cluster_event_match(data, y_pred)
+            ami = adjusted_mutual_info_score(data.label, y_pred)
+            ari = adjusted_rand_score(data.label, y_pred)
+
             try:
-                results = pd.read_csv("results_clustering.csv")
-            except FileNotFoundError:
-                results = pd.DataFrame()
-            stats = pd.concat([results, stats], ignore_index=True)
-            stats.to_csv("results_clustering.csv", index=False)
-            logging.info("Saved results to results_clustering.csv")
+                mcp, mcr, mcf1 = mcminn_eval(data, y_pred)
+            except ZeroDivisionError as error:
+                logging.error(error)
+                continue
+
+            try:
+                bcp, bcr, bcf1 = bcubd_eval(data, y_pred)
+            except ZeroDivisionError as error:
+                logging.error(error)
+                continue
+
+            stats.update({"t": t, "p": p, "r": r, "f1": f1, "mcp": mcp, "mcr": mcr, "mcf1": mcf1, "ami": ami, "ari": ari, "bcub_p" : bcp, "bcub_r" : bcr, "bcub_f1" : bcf1})
+            stats.update(params)
+            stats = pd.DataFrame(stats, index=[0])
+            logging.info(stats[["t", "model", "tfidf_weights", "p", "r", "f1", "ami", "ari", "bcub_p", "bcub_r", "bcub_f1"]].iloc[0])
+            if params["save_results"]:
+                try:
+                    results = pd.read_csv("results_clustering.csv")
+                except FileNotFoundError:
+                    results = pd.DataFrame()
+                stats = pd.concat([results, stats], ignore_index=True)
+                stats.to_csv("results_clustering.csv", index=False)
+                logging.info("Saved evaluation to results_clustering.csv")
 
 
 if __name__ == '__main__':
